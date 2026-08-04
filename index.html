@@ -92,9 +92,9 @@
         <button class="btn btn-primary" onclick="flipBoard()">🔃 اقلب اللوحة</button>
         <button class="btn btn-primary" onclick="analyzePosition()">📊 حلّل</button>
       </div>
-      <input type="text" class="fen-input" id="fen-input" placeholder="أدخل FEN هنا..." onkeypress="if(event.key==='Enter')loadFEN()">
+      <input type="text" class="fen-input" id="pgn-input" placeholder="أدخل PGN هنا..." onkeypress="if(event.key==='Enter')loadPGN()">
       <div class="controls" style="margin-top:8px;">
-        <button class="btn btn-secondary" onclick="loadFEN()">📥 تحميل FEN</button>
+        <button class="btn btn-secondary" onclick="loadPGN()">📥 تحميل PGN</button>
         <button class="btn btn-secondary" onclick="copyFEN()">📋 نسخ FEN</button>
         <button class="btn btn-secondary" onclick="copyPGN()">📋 نسخ PGN</button>
       </div>
@@ -125,31 +125,18 @@
   </div>
 
   <script>
-    // ====== SVG PIECES ======
     const SVG_PIECES = {
-      // WHITE KING - Cross on top
       K: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6M20 8h5" stroke-width="2" stroke-linejoin="miter"/><path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#fff" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-5.5 2.5-9 3.5V19s2-3.5 2-6c0-2-2-3.5-2-3.5V6h-16v3.5s-2 1.5-2 3.5c0 2.5 2 6 2 6v4c-3.5-1-5-4.5-9-3.5-3 6 6 10.5 6 10.5v7z" fill="#fff" stroke-linejoin="round"/></g></svg>`,
-      // WHITE QUEEN - Ball on top
       Q: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12l5.5 5.5L8 23l5.5 5.5L8 34l14.5-9.5L37 34l-5.5-5.5L37 23l-5.5-5.5L37 12 22.5 21.5z" fill="#fff" stroke-linejoin="round"/><circle cx="22.5" cy="8" r="2.8" fill="#fff" stroke="#111" stroke-width="1.5"/><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-5.5 2.5-9 3.5V19s2-3.5 2-6c0-2-2-3.5-2-3.5V6h-16v3.5s-2 1.5-2 3.5c0 2.5 2 6 2 6v4c-3.5-1-5-4.5-9-3.5-3 6 6 10.5 6 10.5v7z" fill="#fff" stroke-linejoin="round"/></g></svg>`,
-      // WHITE ROOK
       R: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt"/><path d="M34 14l-3 3H14l-3-3"/><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M31 29.5l1.5 2.5h-20l1.5-2.5"/><path d="M11 14h23" fill="none" stroke-linejoin="miter"/></g></svg>`,
-      // WHITE BISHOP - FILLED
       B: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z" fill="#fff"/><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" fill="#fff"/><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" fill="#fff"/><path d="M17.5 26h10M15 30h15M22.5 15.5v5M20 18h5" stroke-linejoin="miter"/></g></svg>`,
-      // WHITE KNIGHT
       N: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff" stroke-linejoin="round"/><path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3" fill="#fff" stroke-linejoin="round"/><path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill="#111" stroke="#111"/><path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#111" stroke="#111" stroke-width="1.5"/></g></svg>`,
-      // WHITE PAWN
       P: `<svg viewBox="0 0 45 45" class="piece-svg"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#111" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-      // BLACK KING - White cross
       k: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6M20 8h5" stroke-width="2" stroke-linejoin="miter"/><path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#111" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-5.5 2.5-9 3.5V19s2-3.5 2-6c0-2-2-3.5-2-3.5V6h-16v3.5s-2 1.5-2 3.5c0 2.5 2 6 2 6v4c-3.5-1-5-4.5-9-3.5-3 6 6 10.5 6 10.5v7z" fill="#111" stroke-linejoin="round"/></g></svg>`,
-      // BLACK QUEEN - White ball
       q: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12l5.5 5.5L8 23l5.5 5.5L8 34l14.5-9.5L37 34l-5.5-5.5L37 23l-5.5-5.5L37 12 22.5 21.5z" fill="#111" stroke-linejoin="round"/><circle cx="22.5" cy="8" r="2.8" fill="#111" stroke="#fff" stroke-width="1.5"/><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-5.5 2.5-9 3.5V19s2-3.5 2-6c0-2-2-3.5-2-3.5V6h-16v3.5s-2 1.5-2 3.5c0 2.5 2 6 2 6v4c-3.5-1-5-4.5-9-3.5-3 6 6 10.5 6 10.5v7z" fill="#111" stroke-linejoin="round"/></g></svg>`,
-      // BLACK ROOK
       r: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt"/><path d="M34 14l-3 3H14l-3-3"/><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M31 29.5l1.5 2.5h-20l1.5-2.5"/><path d="M11 14h23" fill="none" stroke-linejoin="miter"/></g></svg>`,
-      // BLACK BISHOP - FILLED
       b: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z" fill="#111"/><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" fill="#111"/><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" fill="#111"/><path d="M17.5 26h10M15 30h15M22.5 15.5v5M20 18h5" stroke-linejoin="miter"/></g></svg>`,
-      // BLACK KNIGHT
       n: `<svg viewBox="0 0 45 45" class="piece-svg"><g fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#111" stroke-linejoin="round"/><path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3" fill="#111" stroke-linejoin="round"/><path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill="#fff" stroke="#fff"/><path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#fff" stroke="#fff" stroke-width="1.5"/></g></svg>`,
-      // BLACK PAWN
       p: `<svg viewBox="0 0 45 45" class="piece-svg"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#111" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`
     };
 
@@ -234,7 +221,7 @@
         c.enPassant = this.enPassant;
         c.halfmove = this.halfmove;
         c.fullmove = this.fullmove;
-        c.moveHistory = [...this.moveHistory];
+        c.moveHistory = JSON.parse(JSON.stringify(this.moveHistory));
         c.lastMove = this.lastMove;
         return c;
       }
@@ -354,7 +341,7 @@
           if(m.from[1]===0)this.castling[color].q=false;
           if(m.from[1]===7)this.castling[color].k=false;
         }
-        if(this.board[m.to[0]][m.to[1]].toLowerCase()==='r'){
+        if(this.board[m.to[0]][m.to[1]] && this.board[m.to[0]][m.to[1]].toLowerCase()==='r'){
           const ec=this.isWhite(this.board[m.to[0]][m.to[1]])?'w':'b';
           if(m.to[1]===0)this.castling[ec].q=false;
           if(m.to[1]===7)this.castling[ec].k=false;
@@ -366,8 +353,9 @@
         const p=this.board[m.from[0]][m.from[1]];
         const captured=this.board[m.to[0]][m.to[1]];
         const prev={castling:JSON.parse(JSON.stringify(this.castling)),enPassant:this.enPassant,lastMove:this.lastMove};
+        const san = this.moveToSAN(m);
         this._makeRaw(m);
-        this.moveHistory.push({move:m,piece:p,captured:captured,prev:prev,turn:this.turn==='w'?'b':'w'});
+        this.moveHistory.push({move:m,piece:p,captured:captured,prev:prev,turn:this.turn==='w'?'b':'w',san:san});
         this.lastMove=m;
         return true;
       }
@@ -573,16 +561,67 @@
         const test=this.copy(); test.makeMove(m);
         if(test.generateMoves().length===0){
           if(test.isInCheck(test.turn==='w'?'b':'w'))san+='#';
-          else san+=' (تعادل)';
+          else san+=' (1/2-1/2)';
         } else if(test.isInCheck(test.turn==='w'?'b':'w'))san+='+';
         return san;
+      }
+      parseSAN(san) {
+        san = san.trim().replace(/[+#]$/, '').replace(' (1/2-1/2)', '');
+        if(san==='O-O')return{castling:'k'};
+        if(san==='O-O-O')return{castling:'q'};
+        let promotion=null;
+        if(san.includes('=')){const parts=san.split('=');promotion=parts[1][0].toLowerCase();san=parts[0];}
+        const files='abcdefgh',ranks='87654321';
+        let toFile=-1,toRank=-1,fromFile=-1,fromRank=-1,piece='p';
+        const len=san.length;
+        let idx=0;
+        if('KQRBN'.includes(san[0])){piece=san[0].toLowerCase();idx++;}
+        let capture=false;
+        if(san.includes('x')){capture=true;const xi=san.indexOf('x');san=san.slice(0,xi)+san.slice(xi+1);}
+        toFile=files.indexOf(san[san.length-2]);
+        toRank=ranks.indexOf(san[san.length-1]);
+        const mid=san.slice(idx,san.length-2);
+        if(mid.length===1){
+          if(files.includes(mid[0]))fromFile=files.indexOf(mid[0]);
+          else fromRank=ranks.indexOf(mid[0]);
+        } else if(mid.length===2){
+          fromFile=files.indexOf(mid[0]);
+          fromRank=ranks.indexOf(mid[1]);
+        }
+        for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+          const p=this.board[r][c];
+          if(!p||p.toLowerCase()!==piece||!this.isOwn(p))continue;
+          if(fromFile!==-1&&c!==fromFile)continue;
+          if(fromRank!==-1&&r!==fromRank)continue;
+          const moves=this._rawMoves(r,c);
+          for(const m of moves){
+            if(m.to[0]===toRank&&m.to[1]===toFile){
+              const test=this.copy();test._makeRaw(m);
+              if(!test.isInCheck(this.turn)){
+                if(promotion)m.promotion=promotion;
+                return m;
+              }
+            }
+          }
+        }
+        return null;
+      }
+      fromPGN(pgn) {
+        this.reset();
+        const clean = pgn.replace(/\{[^}]*\}/g,'').replace(/\[[^\]]*\]/g,'').replace(/\d+\./g,' ').replace(/\s+/g,' ').trim();
+        const tokens = clean.split(' ').filter(t=>t && !['1-0','0-1','1/2-1/2','*'].includes(t));
+        for(const token of tokens){
+          const san = token.replace(/\.\.\./g,'');
+          const m = this.parseSAN(san);
+          if(m)this.makeMove(m);
+        }
       }
       getPGN() {
         let pgn='[Event "تحليل شطرنج"]\n[Site "محلل الشطرنج"]\n[Date "'+new Date().toISOString().split('T')[0]+'"]\n';
         for(let i=0;i<this.moveHistory.length;i+=2){
           pgn+=Math.floor(i/2)+1+'. ';
-          pgn+=this.moveToSAN(this.moveHistory[i].move)+' ';
-          if(this.moveHistory[i+1])pgn+=this.moveToSAN(this.moveHistory[i+1].move)+' ';
+          pgn+=this.moveHistory[i].san+' ';
+          if(this.moveHistory[i+1])pgn+=this.moveHistory[i+1].san+' ';
         }
         return pgn.trim();
       }
@@ -761,13 +800,13 @@
         row.appendChild(num);
         const w = document.createElement('span');
         w.className = 'move-white';
-        w.textContent = engine.moveToSAN(engine.moveHistory[i].move);
+        w.textContent = engine.moveHistory[i].san;
         if (i === engine.moveHistory.length - 1) w.classList.add('move-current');
         row.appendChild(w);
         if (engine.moveHistory[i + 1]) {
           const b = document.createElement('span');
           b.className = 'move-black';
-          b.textContent = engine.moveToSAN(engine.moveHistory[i + 1].move);
+          b.textContent = engine.moveHistory[i + 1].san;
           if (i + 1 === engine.moveHistory.length - 1) b.classList.add('move-current');
           row.appendChild(b);
         }
@@ -823,16 +862,16 @@
       }, 100);
     }
 
-    function loadFEN() {
-      const fen = document.getElementById('fen-input').value.trim();
-      if (!fen) return;
+    function loadPGN() {
+      const pgn = document.getElementById('pgn-input').value.trim();
+      if (!pgn) return;
       try {
-        engine.fromFEN(fen);
+        engine.fromPGN(pgn);
         selectedSquare = null;
         legalMoves = [];
         renderBoard();
       } catch (e) {
-        alert('FEN غير صالح');
+        alert('PGN غير صالح');
       }
     }
 
