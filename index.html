@@ -49,6 +49,24 @@
       gap: 12px;
     }
 
+    /* زر الصفحة الجديدة */
+    .btn-summary-link {
+      background: #2b2926;
+      color: var(--green-accent);
+      border: 1px solid #312e2b;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      text-align: center;
+      font-size: 13px;
+      font-weight: bold;
+      display: block;
+      transition: 0.2s;
+    }
+    .btn-summary-link:hover {
+      background: #36332f;
+    }
+
     /* كروت إحصائيات الدقة */
     .accuracy-section {
       display: flex;
@@ -176,6 +194,11 @@
 
   <div class="review-app">
     
+    <!-- زر الانتقال لصفحة الرسم البياني والافتتاحيات -->
+    <a href="summary.html" class="btn-summary-link">
+      📊 عرض الرسم البياني والافتتاحية المقدرة
+    </a>
+
     <div class="accuracy-section">
       <div class="acc-card white">
         <div class="acc-info">
@@ -254,7 +277,6 @@
     var currentMoveIndex = -1;
     var autoplayTimer = null;
 
-    // معادلة تحويل التقييم لخسارة احتمالية الفوز (Chess.com Accuracy Standard)
     function winChance(cp) {
       return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
     }
@@ -298,7 +320,6 @@
 
       var evalResults = [];
 
-      // الاتصال بالـ API المباشر لمحرك Lichess Stockfish السحابي
       for (var k = 0; k < fens.length; k++) {
         $('#progressBox').text('جاري تحليل النقلة (' + k + ' من ' + (fens.length - 1) + ')...');
         var cp = await fetchStockfishEval(fens[k].fen);
@@ -314,7 +335,6 @@
       $('#btnAnalyze').prop('disabled', false);
     }
 
-    // جلب التقييم من محرك الشطرنج الحقيقي عبر الإنترنت
     function fetchStockfishEval(fen) {
       return new Promise(function(resolve) {
         $.ajax({
@@ -351,7 +371,6 @@
         var prevCp = evals[i];
         var curCp = evals[i+1];
 
-        // الحساب الدقيق بناءً على تغير نسبة فرصة الفوز
         var prevWin = winChance(side === 'w' ? prevCp : -prevCp);
         var curWin = winChance(side === 'w' ? curCp : -curCp);
         var winDrop = prevWin - curWin;
@@ -374,7 +393,6 @@
         } else if (winDrop > 0) {
           type = 'excellent'; info = { name: 'ممتازة', icon: '👍', bg: 'bg-excellent' };
         } else {
-          // نقلات مدهشة ورائعة
           if (m.captured && (m.piece === 'r' || m.piece === 'q' || m.piece === 'b' || m.piece === 'n') && winDrop < -5) {
             type = 'brilliant'; info = { name: 'مدهشة', icon: '!!', bg: 'bg-brilliant' };
           } else if (winDrop < -2) {
@@ -418,7 +436,6 @@
         $('#b_' + cat).text(counts.b[cat]);
       });
 
-      // خوارزمية الدقة CAPS
       function calcAcc(drops) {
         if (!drops.length) return '0.0';
         var sumAcc = 0;
