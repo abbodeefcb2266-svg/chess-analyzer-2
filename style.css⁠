@@ -1,134 +1,121 @@
 :root {
-  --bg-dark: #161512;
+  --bg-color: #161512;
   --card-bg: #21201d;
-  --accent-green: #81b64c;
-  --text-light: #ffffff;
-  --text-muted: #bababa;
-  --border-color: #312e2b;
+  --banner-bg: #262421;
+  --green-accent: #81b64c;
+  --text-white: #ffffff;
+  --text-dim: #bababa;
   
-  /* ألوان الشارات Chess.com */
+  /* ألوان التقييمات */
   --c-best: #96bc4b;
   --c-great: #5c8bb0;
-  --c-excellent: #96bc4b;
   --c-good: #a8a8a8;
   --c-inaccuracy: #f0c15c;
   --c-mistake: #e6912c;
   --c-blunder: #ca3431;
+  --c-book: #d5a47d;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-light);
+  background-color: var(--bg-color);
+  color: var(--text-white);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   justify-content: center;
   padding: 10px;
 }
 
-.container {
-  max-width: 950px;
+.review-app {
   width: 100%;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* شريط التقييم والتعليق العلوي */
-.review-header {
-  width: 100%;
-}
-
-.eval-banner {
-  background: #262421;
+/* البانر العلوي */
+.header-banner {
+  background: var(--banner-bg);
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #312e2b;
 }
 
-.eval-score-pill {
-  background: #ffffff;
-  color: #000000;
+.coach-avatar {
+  font-size: 28px;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.eval-pill {
+  background: #fff;
+  color: #000;
   font-weight: bold;
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.move-title {
+  font-weight: bold;
   font-size: 14px;
 }
 
-.eval-text-group {
+.move-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* الرقعة وشريط التقييم */
+.board-container {
   display: flex;
-  flex-direction: column;
-}
-
-.move-name-text {
-  font-weight: bold;
-  font-size: 15px;
-}
-
-.move-desc-text {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* التنسيق الرئيسي */
-.main-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-@media (min-width: 768px) {
-  .main-layout {
-    flex-direction: row;
-  }
-}
-
-.board-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.board-wrapper {
-  display: flex;
-  width: 100%;
-  max-width: 480px;
   gap: 6px;
-  position: relative;
+  width: 100%;
 }
 
-.eval-bar {
-  width: 16px;
+.eval-bar-wrapper {
+  width: 14px;
   background: #262421;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  border: 1px solid var(--border-color);
+  border: 1px solid #312e2b;
 }
 
 .eval-bar-fill {
   width: 100%;
+  height: 50%;
   background: #ffffff;
   transition: height 0.3s ease;
 }
 
-.board {
+.chess-board {
   flex: 1;
   aspect-ratio: 1;
   position: relative;
 }
 
-/* أيقونة التقييم فوق المربع في الرقعة */
-.square-eval-icon {
+/* شارات التقييم على الرقعة */
+.square-eval-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -138,199 +125,96 @@ body {
   font-size: 11px;
   font-weight: bold;
   color: #fff;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-/* أزرار التحكم السلسة والكبيرة */
-.controls {
+/* شريط التنقل الأفقي */
+.moves-history-bar {
+  background: var(--card-bg);
+  border-radius: 6px;
+  padding: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.moves-scroll {
+  display: flex;
+  gap: 6px;
+}
+
+.chip-move {
+  background: #2b2926;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip-move.active {
+  background: var(--green-accent);
+  font-weight: bold;
+}
+
+/* التحكم السفلي */
+.controls-bar {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
-  width: 100%;
-  max-width: 480px;
 }
 
-.controls button {
-  background: #262421;
-  border: 1px solid var(--border-color);
+.ctrl-btn {
+  background: #2b2926;
+  border: 1px solid #312e2b;
   color: #fff;
-  font-size: 18px;
   padding: 12px;
   border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
   flex: 1;
-  transition: background 0.2s;
 }
 
-.controls button:hover {
-  background: #363431;
-}
-
-.controls .btn-next-main {
-  background: var(--accent-green);
+.btn-next {
+  background: var(--green-accent);
   font-weight: bold;
   flex: 2;
-  font-size: 16px;
 }
 
-.controls .btn-next-main:hover {
-  background: #6f9e3f;
-}
-
-/* الشريط الجانبي */
-.sidebar {
-  width: 100%;
-  max-width: 380px;
+/* إدخال البيانات */
+.input-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.card {
-  background: var(--card-bg);
-  border-radius: 8px;
-  padding: 14px;
-  border: 1px solid var(--border-color);
-}
-
-.card h3 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.players-accuracy {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #181715;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-
-.player-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.acc-badge {
-  background: var(--accent-green);
-  color: #fff;
-  font-weight: bold;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-}
-
-.vs-divider {
-  font-weight: bold;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.move-types-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  font-size: 12px;
-}
-
-.type-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #181715;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.count-val {
-  margin-right: auto;
-  font-weight: bold;
+  gap: 8px;
 }
 
 textarea {
   width: 100%;
-  height: 60px;
+  height: 50px;
   background: #181715;
-  border: 1px solid var(--border-color);
+  border: 1px solid #312e2b;
   color: #fff;
   border-radius: 6px;
   padding: 8px;
   box-sizing: border-box;
-  resize: none;
   font-size: 11px;
 }
 
-.btn-group {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.btn-action {
-  flex: 1;
-  background: var(--accent-green);
+.btn-main {
+  background: var(--green-accent);
   border: none;
   color: #fff;
-  padding: 8px;
+  padding: 10px;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
+  width: 100%;
 }
 
-.btn-file {
-  background: #363431;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.moves-list {
-  max-height: 180px;
-  overflow-y: auto;
-  font-size: 13px;
-}
-
-.move-row {
-  display: flex;
-  padding: 4px 0;
-  border-bottom: 1px solid #2b2926;
-}
-
-.move-num {
-  width: 30px;
-  color: var(--text-muted);
-}
-
-.move-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  text-align: right;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.move-btn.active {
-  background: #363431;
-  font-weight: bold;
-}
-
-/* ألوان الشارات المخصصة */
-.bg-best { background-color: var(--c-best); }
-.bg-great { background-color: var(--c-great); }
-.bg-excellent { background-color: var(--c-excellent); }
-.bg-good { background-color: var(--c-good); }
-.bg-inaccuracy { background-color: var(--c-inaccuracy); }
-.bg-mistake { background-color: var(--c-mistake); }
-.bg-blunder { background-color: var(--c-blunder); }
-.bg-book { background-color: #d5a47d; }
+.bg-best { background: var(--c-best); }
+.bg-great { background: var(--c-great); }
+.bg-good { background: var(--c-good); }
+.bg-inaccuracy { background: var(--c-inaccuracy); }
+.bg-mistake { background: var(--c-mistake); }
+.bg-blunder { background: var(--c-blunder); }
+.bg-book { background: var(--c-book); }
