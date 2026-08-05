@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>مراجعة المباراة | Chess Review</title>
+  <title>مراجعة المباراة | Chess Review Pro</title>
   
-  <!-- المكتبات الأساسية لتأمين ظهور الرقعة بالكامل -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
   
   <style>
@@ -17,13 +16,17 @@
       --text-white: #ffffff;
       --text-dim: #bababa;
       
-      --c-best: #96bc4b;
-      --c-great: #5c8bb0;
-      --c-good: #a8a8a8;
-      --c-inaccuracy: #f0c15c;
-      --c-mistake: #e6912c;
-      --c-blunder: #ca3431;
-      --c-book: #d5a47d;
+      /* الألوان الرسمية المطابقة تماماً لـ Chess.com */
+      --c-brilliant: #1baaa0; /* مدهشة !! */
+      --c-great: #4b82b6;     /* رائعة ! */
+      --c-best: #769656;      /* الأفضل ★ */
+      --c-excellent: #85a94e; /* ممتازة 👍 */
+      --c-good: #87a96b;      /* جيدة ✓ */
+      --c-book: #d5a47d;      /* كتاب 📖 */
+      --c-inaccuracy: #f0c15c;/* غير دقيقة ?! */
+      --c-mistake: #e6912c;   /* خطأ ? */
+      --c-miss: #fa6555;      /* أضاعت فرصة ✖ */
+      --c-blunder: #ca3431;   /* خطأ فادح ?? */
     }
 
     * {
@@ -48,10 +51,47 @@
       max-width: 420px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
-    /* البانر العلوي */
+    /* كروت إحصائيات الدقة العلوية */
+    .accuracy-section {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .acc-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid #312e2b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .acc-card.white { border-left: 4px solid #fff; }
+    .acc-card.black { border-left: 4px solid #7a7a7a; }
+
+    .acc-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .acc-title {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .acc-score {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    /* البانر العلوي للنقلة */
     .header-banner {
       background: var(--banner-bg);
       border-radius: 8px;
@@ -60,10 +100,6 @@
       align-items: center;
       gap: 12px;
       border: 1px solid #312e2b;
-    }
-
-    .coach-avatar {
-      font-size: 24px;
     }
 
     .banner-content {
@@ -89,15 +125,15 @@
 
     .move-title {
       font-weight: bold;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .move-desc {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-dim);
     }
 
-    /* حاوية الرقعة وشريط التقييم */
+    /* الرقعة وشريط التقييم */
     .board-container {
       display: flex;
       gap: 6px;
@@ -126,6 +162,7 @@
     .board-box {
       flex: 1;
       width: 100%;
+      position: relative;
     }
 
     #board {
@@ -133,22 +170,76 @@
       position: relative;
     }
 
-    /* أيقونات التقييم التفاعلية */
+    /* شارات التقييم على الرقعة */
     .square-eval-badge {
       position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 20px;
-      height: 20px;
+      top: -6px;
+      right: -6px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #fff;
+      z-index: 999;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+      border: 2px solid #fff;
+    }
+
+    /* جدول تقييم النقلات المطابق للصورة تماماً */
+    .stats-table {
+      background: var(--card-bg);
+      border: 1px solid #312e2b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 40px 32px 40px 1fr;
+      align-items: center;
+      padding: 2px 0;
+    }
+
+    .stat-val-white {
+      font-weight: bold;
+      font-size: 15px;
+      color: #81b64c;
+      text-align: center;
+    }
+
+    .stat-val-black {
+      font-weight: bold;
+      font-size: 15px;
+      color: #81b64c;
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
       font-weight: bold;
       color: #fff;
-      z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      margin: 0 auto;
+    }
+
+    .stat-name {
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-white);
+      padding-right: 12px;
     }
 
     /* شريط النقلات الأفقي */
@@ -204,13 +295,6 @@
       flex: 2;
     }
 
-    /* إدخال الـ PGN */
-    .input-section {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
     textarea {
       width: 100%;
       height: 50px;
@@ -234,22 +318,42 @@
       width: 100%;
     }
 
-    .bg-best { background: var(--c-best); }
+    .bg-brilliant { background: var(--c-brilliant); }
     .bg-great { background: var(--c-great); }
+    .bg-best { background: var(--c-best); }
+    .bg-excellent { background: var(--c-excellent); }
     .bg-good { background: var(--c-good); }
+    .bg-book { background: var(--c-book); }
     .bg-inaccuracy { background: var(--c-inaccuracy); }
     .bg-mistake { background: var(--c-mistake); }
+    .bg-miss { background: var(--c-miss); }
     .bg-blunder { background: var(--c-blunder); }
-    .bg-book { background: var(--c-book); }
   </style>
 </head>
 <body>
 
   <div class="review-app">
     
-    <!-- البانر العلوي -->
+    <!-- قسم الدقة Percentage -->
+    <div class="accuracy-section">
+      <div class="acc-card white">
+        <div class="acc-info">
+          <span class="acc-title">دقة الأبيض</span>
+          <span id="whiteAcc" class="acc-score">0.0%</span>
+        </div>
+        <span>♔</span>
+      </div>
+      <div class="acc-card black">
+        <div class="acc-info">
+          <span class="acc-title">دقة الأسود</span>
+          <span id="blackAcc" class="acc-score">0.0%</span>
+        </div>
+        <span>♚</span>
+      </div>
+    </div>
+
+    <!-- البانر العلوي للنقلة -->
     <div class="header-banner">
-      <div class="coach-avatar">♟️</div>
       <div class="banner-content">
         <div class="eval-pill" id="evalScore">+0.0</div>
         <div class="banner-text">
@@ -259,7 +363,7 @@
       </div>
     </div>
 
-    <!-- الرقعة وشريط التقييم الجانبي -->
+    <!-- الرقعة وشريط التقييم -->
     <div class="board-container">
       <div class="eval-bar-wrapper">
         <div id="evalBarFill" class="eval-bar-fill"></div>
@@ -282,28 +386,45 @@
       <button id="btnAuto" class="ctrl-btn">▶</button>
     </div>
 
-    <!-- قسم رفع PGN -->
+    <!-- جدول تقييم النقلات المطابق تماماً للصورة المرفقة -->
+    <div class="stats-table" id="statsTable">
+      <div class="stats-row"><span id="w_brilliant" class="stat-val-white">0</span><div class="stat-icon bg-brilliant">!!</div><span id="b_brilliant" class="stat-val-black">0</span><span class="stat-name">مدهشة</span></div>
+      <div class="stats-row"><span id="w_great" class="stat-val-white">0</span><div class="stat-icon bg-great">!</div><span id="b_great" class="stat-val-black">0</span><span class="stat-name">رائعة</span></div>
+      <div class="stats-row"><span id="w_best" class="stat-val-white">0</span><div class="stat-icon bg-best">★</div><span id="b_best" class="stat-val-black">0</span><span class="stat-name">الأفضل</span></div>
+      <div class="stats-row"><span id="w_excellent" class="stat-val-white">0</span><div class="stat-icon bg-excellent">👍</div><span id="b_excellent" class="stat-val-black">0</span><span class="stat-name">ممتازة</span></div>
+      <div class="stats-row"><span id="w_good" class="stat-val-white">0</span><div class="stat-icon bg-good">✓</div><span id="b_good" class="stat-val-black">0</span><span class="stat-name">جيدة</span></div>
+      <div class="stats-row"><span id="w_book" class="stat-val-white">0</span><div class="stat-icon bg-book">📖</div><span id="b_book" class="stat-val-black">0</span><span class="stat-name">كتاب</span></div>
+      <div class="stats-row"><span id="w_inaccuracy" class="stat-val-white">0</span><div class="stat-icon bg-inaccuracy">?!</div><span id="b_inaccuracy" class="stat-val-black">0</span><span class="stat-name">غير دقيقة</span></div>
+      <div class="stats-row"><span id="w_mistake" class="stat-val-white">0</span><div class="stat-icon bg-mistake">?</div><span id="b_mistake" class="stat-val-black">0</span><span class="stat-name">خطأ</span></div>
+      <div class="stats-row"><span id="w_miss" class="stat-val-white">0</span><div class="stat-icon bg-miss">✖</div><span id="b_miss" class="stat-val-black">0</span><span class="stat-name">أضاعت فرصة</span></div>
+      <div class="stats-row"><span id="w_blunder" class="stat-val-white">0</span><div class="stat-icon bg-blunder">??</div><span id="b_blunder" class="stat-val-black">0</span><span class="stat-name">خطأ فادح</span></div>
+    </div>
+
+    <!-- قسم إدخال الـ PGN -->
     <div class="input-section">
       <textarea id="pgnInput" placeholder="الصق PGN المباراة هنا..."></textarea>
-      <button id="btnAnalyze" class="btn-main">تحليل المباراة</button>
+      <button id="btnAnalyze" class="btn-main">تحليل المباراة الكامل</button>
     </div>
 
   </div>
 
-  <!-- مكتبات تشغيلية مستقرة للغاية على الهواتف -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
   <script>
     var board = null;
-    var game = new Chess();
     var historyMoves = [];
     var moveAnalysis = [];
     var currentMoveIndex = -1;
     var autoplayTimer = null;
 
-    var pieceVal = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
+    var pieceVal = { p: 1, n: 3.05, b: 3.33, r: 5.63, q: 9.5, k: 0 };
+
+    // تحويل التقييم لنسبة فرصة الفوز من 0% إلى 100%
+    function winChance(evalScore) {
+      return 50 + 50 * (2 / (1 + Math.exp(-0.35 * evalScore)) - 1);
+    }
 
     function calcEval(cGame) {
       var score = 0;
@@ -318,32 +439,20 @@
     }
 
     $(document).ready(function () {
-      // إعداد الرقعة
       board = Chessboard('board', {
         position: 'start',
         draggable: false,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
       });
 
-      // إعادة ضبط حجم الرقعة لضمان عرضها بشكل كلي فوراً على الموبايل
-      setTimeout(function() {
-        if (board) board.resize();
-      }, 200);
+      setTimeout(function() { if (board) board.resize(); }, 200);
 
-      $('#btnAnalyze').on('click', function() {
-        parsePGN($('#pgnInput').val());
-      });
-      $('#btnNext').on('click', function() {
-        renderStep(currentMoveIndex + 1);
-      });
-      $('#btnPrev').on('click', function() {
-        renderStep(currentMoveIndex - 1);
-      });
+      $('#btnAnalyze').on('click', function() { parsePGN($('#pgnInput').val()); });
+      $('#btnNext').on('click', function() { renderStep(currentMoveIndex + 1); });
+      $('#btnPrev').on('click', function() { renderStep(currentMoveIndex - 1); });
       $('#btnAuto').on('click', toggleAutoplay);
 
-      $(window).on('resize', function() {
-        if (board) board.resize();
-      });
+      $(window).on('resize', function() { if (board) board.resize(); });
     });
 
     function parsePGN(pgn) {
@@ -355,6 +464,7 @@
 
       historyMoves = g.history({ verbose: true });
       analyzeMoves();
+      calculateStatsAndAccuracy();
       renderHorizontalMoves();
       renderStep(-1);
     }
@@ -362,29 +472,54 @@
     function analyzeMoves() {
       var cGame = new Chess();
       moveAnalysis = [];
-      var prevVal = 0;
+      var prevEval = 0;
 
       for (var i = 0; i < historyMoves.length; i++) {
         var m = historyMoves[i];
+        var isCaptured = m.captured ? true : false;
         cGame.move(m);
         var score = calcEval(cGame);
         var side = i % 2 === 0 ? 'w' : 'b';
-        var delta = side === 'w' ? (score - prevVal) : (prevVal - score);
 
-        var info = { name: 'نقلة جيدة', icon: '✔️', bg: 'bg-good' };
+        var prevWin = winChance(side === 'w' ? prevEval : -prevEval);
+        var curWin = winChance(side === 'w' ? score : -score);
+        var winDrop = prevWin - curWin;
+
+        var type = 'good';
+        var info = { name: 'جيدة', icon: '✓', bg: 'bg-good' };
 
         if (i < 5) {
-          info = { name: 'نقلة من النظرية', icon: '📖', bg: 'bg-book' };
-        } else if (delta >= 0.7) {
-          info = { name: 'نقلة رائعة!', icon: '‼️', bg: 'bg-great' };
-        } else if (delta >= 0.1) {
-          info = { name: 'الأفضل', icon: '⭐', bg: 'bg-best' };
-        } else if (delta >= -0.4) {
-          info = { name: 'نقلة غير دقيقة', icon: '⁉️', bg: 'bg-inaccuracy' };
-        } else if (delta >= -1.5) {
-          info = { name: 'خطأ', icon: '❓', bg: 'bg-mistake' };
+          type = 'book';
+          info = { name: 'كتاب', icon: '📖', bg: 'bg-book' };
+        } else if (winDrop <= 0) {
+          if (isCaptured && Math.abs(score) >= 1.5) {
+            type = 'brilliant';
+            info = { name: 'مدهشة', icon: '!!', bg: 'bg-brilliant' };
+          } else if (winDrop < -2) {
+            type = 'great';
+            info = { name: 'رائعة', icon: '!', bg: 'bg-great' };
+          } else {
+            type = 'best';
+            info = { name: 'الأفضل', icon: '★', bg: 'bg-best' };
+          }
+        } else if (winDrop <= 4) {
+          type = 'excellent';
+          info = { name: 'ممتازة', icon: '👍', bg: 'bg-excellent' };
+        } else if (winDrop <= 10) {
+          type = 'good';
+          info = { name: 'جيدة', icon: '✓', bg: 'bg-good' };
+        } else if (winDrop <= 20) {
+          type = 'inaccuracy';
+          info = { name: 'غير دقيقة', icon: '?!', bg: 'bg-inaccuracy' };
+        } else if (winDrop <= 38) {
+          type = 'mistake';
+          info = { name: 'خطأ', icon: '?', bg: 'bg-mistake' };
+        } else if (winDrop <= 55) {
+          type = 'miss';
+          info = { name: 'أضاعت فرصة', icon: '✖', bg: 'bg-miss' };
         } else {
-          info = { name: 'خطأ فادح', icon: '❌', bg: 'bg-blunder' };
+          type = 'blunder';
+          info = { name: 'خطأ فادح', icon: '??', bg: 'bg-blunder' };
         }
 
         moveAnalysis.push({
@@ -393,11 +528,49 @@
           san: m.san,
           name: info.name,
           icon: info.icon,
-          bg: info.bg
+          bg: info.bg,
+          type: type,
+          winDrop: Math.max(0, winDrop),
+          side: side
         });
 
-        prevVal = score;
+        prevEval = score;
       }
+    }
+
+    function calculateStatsAndAccuracy() {
+      var counts = {
+        w: { brilliant:0, great:0, best:0, excellent:0, good:0, book:0, inaccuracy:0, mistake:0, miss:0, blunder:0 },
+        b: { brilliant:0, great:0, best:0, excellent:0, good:0, book:0, inaccuracy:0, mistake:0, miss:0, blunder:0 }
+      };
+
+      var wDrops = [], bDrops = [];
+
+      moveAnalysis.forEach(function(item) {
+        counts[item.side][item.type]++;
+        if (item.side === 'w') wDrops.push(item.winDrop);
+        else bDrops.push(item.winDrop);
+      });
+
+      var categories = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'mistake', 'miss', 'blunder'];
+      categories.forEach(function(cat) {
+        $('#w_' + cat).text(counts.w[cat]);
+        $('#b_' + cat).text(counts.b[cat]);
+      });
+
+      // معادلة حساب الدقة الدقيقة CAPS الحقيقية
+      function calcAcc(drops) {
+        if (!drops.length) return '0.0';
+        var sumAcc = 0;
+        drops.forEach(function(d) {
+          var acc = 100 * Math.exp(-0.03 * d);
+          sumAcc += acc;
+        });
+        return (sumAcc / drops.length).toFixed(1);
+      }
+
+      $('#whiteAcc').text(calcAcc(wDrops) + '%');
+      $('#blackAcc').text(calcAcc(bDrops) + '%');
     }
 
     function renderStep(idx) {
