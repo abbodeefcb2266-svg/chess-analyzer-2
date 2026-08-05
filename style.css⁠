@@ -6,6 +6,8 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #334155;
+  --eval-white: #ffffff;
+  --eval-black: #1e293b;
 }
 
 body {
@@ -22,11 +24,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1000px;
+  max-width: 1050px;
   width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 820px) {
   .container {
     flex-direction: row;
   }
@@ -41,80 +43,164 @@ body {
 
 .game-info {
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
   background: var(--card-bg);
-  padding: 12px 16px;
-  border-radius: 8px 8px 0 0;
+  padding: 14px 18px;
+  border-radius: 10px 10px 0 0;
   display: flex;
   justify-content: space-between;
   font-weight: bold;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
 .game-result {
   color: var(--accent-color);
 }
 
-.board {
+/* حاوية الرقعة وشريط التقييم */
+.board-container {
+  display: flex;
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
+  gap: 8px;
+}
+
+/* شريط التقييم vertical eval bar */
+.eval-bar-wrapper {
+  width: 26px;
+  background-color: var(--eval-black);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.eval-bar-fill {
+  width: 100%;
+  background-color: var(--eval-white);
+  transition: height 0.4s ease-out;
+}
+
+.eval-score-text {
+  position: absolute;
+  top: 6px;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #f59e0b;
+  text-shadow: 0 0 3px #000;
+  z-index: 2;
+}
+
+.board {
+  flex: 1;
   aspect-ratio: 1;
 }
 
-/* دعم السحب والإسقاط */
-.board.drag-over {
-  border: 3px dashed var(--accent-color);
-  opacity: 0.8;
-}
-
+/* تكبير وتنسيق أزرار التحكم بالحركات */
 .controls {
-  margin-top: 15px;
+  margin-top: 18px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   background: var(--card-bg);
-  padding: 8px 16px;
-  border-radius: 30px;
+  padding: 10px 20px;
+  border-radius: 40px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .controls button {
-  background: none;
+  background: #334155;
   border: none;
   color: var(--text-main);
-  font-size: 20px;
+  font-size: 24px; /* أزرار كبيرة واضحة */
+  font-weight: bold;
   cursor: pointer;
-  padding: 5px 12px;
-  border-radius: 6px;
-  transition: 0.2s;
+  padding: 10px 22px; /* مساحة ضغط كبيرة */
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  min-width: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .controls button:hover {
-  background: var(--border-color);
-  color: var(--accent-color);
+  background: var(--accent-color);
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.controls button:active {
+  transform: translateY(0);
 }
 
 .sidebar {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 .card {
   background: var(--card-bg);
-  padding: 16px;
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
 }
 
 .card h3 {
   margin-top: 0;
+  margin-bottom: 12px;
   font-size: 16px;
   color: var(--text-muted);
 }
 
+/* شبكة إحصائيات الدقة */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat-box {
+  background: #0f172a;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.stat-box.highlight {
+  grid-column: span 2;
+  border-color: var(--accent-color);
+  background: #1e1b4b;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
 textarea {
   width: 100%;
-  height: 90px;
+  height: 80px;
   background: #020617;
   border: 1px solid var(--border-color);
   color: var(--text-main);
@@ -137,10 +223,11 @@ textarea {
   background: var(--accent-color);
   color: #000;
   border: none;
-  padding: 10px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
+  font-size: 15px;
 }
 
 .btn-primary:hover {
@@ -150,27 +237,29 @@ textarea {
 .btn-secondary {
   background: var(--border-color);
   color: var(--text-main);
-  padding: 10px 15px;
-  border-radius: 6px;
+  padding: 12px 18px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
 }
 
 .moves-list {
-  max-height: 250px;
+  max-height: 230px;
   overflow-y: auto;
   font-family: monospace;
 }
 
 .move-row {
   display: flex;
-  padding: 4px 8px;
-  border-bottom: 1px solid #33415522;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid #33415544;
 }
 
 .move-number {
-  width: 40px;
+  width: 35px;
   color: var(--text-muted);
+  font-weight: bold;
 }
 
 .move-btn {
@@ -180,8 +269,12 @@ textarea {
   color: var(--text-main);
   cursor: pointer;
   text-align: center;
-  padding: 2px;
-  border-radius: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .move-btn.active {
@@ -189,3 +282,15 @@ textarea {
   color: #000;
   font-weight: bold;
 }
+
+.eval-badge {
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.badge-good { background: #166534; color: #dcfce7; }
+.badge-inaccuracy { background: #854d0e; color: #fef08a; }
+.badge-mistake { background: #9a3412; color: #ffedd5; }
+.badge-blunder { background: #991b1b; color: #fee2e2; }
