@@ -5,27 +5,256 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مراجعة المباراة | Chess Review</title>
   
-  <!-- مكتبات الرقعة والتصميم -->
+  <!-- مكتبات الشطرنج الرسمية والتنسيقات -->
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    :root {
+      --bg-color: #161512;
+      --card-bg: #21201d;
+      --banner-bg: #262421;
+      --green-accent: #81b64c;
+      --text-white: #ffffff;
+      --text-dim: #bababa;
+      
+      /* ألوان التقييمات */
+      --c-best: #96bc4b;
+      --c-great: #5c8bb0;
+      --c-good: #a8a8a8;
+      --c-inaccuracy: #f0c15c;
+      --c-mistake: #e6912c;
+      --c-blunder: #ca3431;
+      --c-book: #d5a47d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-white);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 10px;
+      min-height: 100vh;
+    }
+
+    .review-app {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* البانر العلوي */
+    .header-banner {
+      background: var(--banner-bg);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #312e2b;
+    }
+
+    .coach-avatar {
+      font-size: 28px;
+    }
+
+    .banner-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .eval-pill {
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .banner-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .move-title {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .move-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* الرقعة وشريط التقييم */
+    .board-container {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .eval-bar-wrapper {
+      width: 16px;
+      background: #262421;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border: 1px solid #312e2b;
+    }
+
+    .eval-bar-fill {
+      width: 100%;
+      height: 50%;
+      background: #ffffff;
+      transition: height 0.3s ease;
+    }
+
+    .chess-board {
+      flex: 1;
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    /* شارات التقييم المباشرة فوق المربع */
+    .square-eval-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: #fff;
+      z-index: 50;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* شريط النقلات الأفقي */
+    .moves-history-bar {
+      background: var(--card-bg);
+      border-radius: 6px;
+      padding: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      border: 1px solid #312e2b;
+    }
+
+    .moves-scroll {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chip-move {
+      background: #2b2926;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chip-move.active {
+      background: var(--green-accent);
+      font-weight: bold;
+    }
+
+    /* أزرار التحكم السفلية */
+    .controls-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      background: #2b2926;
+      border: 1px solid #312e2b;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-next {
+      background: var(--green-accent);
+      font-weight: bold;
+      flex: 2;
+    }
+
+    /* إدخال الـ PGN */
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 60px;
+      background: #181715;
+      border: 1px solid #312e2b;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 11px;
+      resize: none;
+    }
+
+    .btn-main {
+      background: var(--green-accent);
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .bg-best { background: var(--c-best); }
+    .bg-great { background: var(--c-great); }
+    .bg-good { background: var(--c-good); }
+    .bg-inaccuracy { background: var(--c-inaccuracy); }
+    .bg-mistake { background: var(--c-mistake); }
+    .bg-blunder { background: var(--c-blunder); }
+    .bg-book { background: var(--c-book); }
+  </style>
 </head>
 <body>
 
   <div class="review-app">
     
-    <!-- البانر العلوي لشرح النقلات والتقييم -->
+    <!-- البانر العلوي -->
     <div class="header-banner">
       <div class="coach-avatar">♟️</div>
       <div class="banner-content">
         <div class="eval-pill" id="evalScore">+0.0</div>
         <div class="banner-text">
           <div id="moveTitle" class="move-title">مراجعة المباراة</div>
-          <div id="moveDescription" class="move-desc">الصق PGN للبدء في التحليل السلس</div>
+          <div id="moveDescription" class="move-desc">الصق PGN للبدء في التحليل</div>
         </div>
       </div>
     </div>
 
-    <!-- الرقعة وشريط التقييم الجانبي -->
+    <!-- الرقعة وشريط التقييم -->
     <div class="board-container">
       <div class="eval-bar-wrapper">
         <div id="evalBarFill" class="eval-bar-fill"></div>
@@ -34,19 +263,19 @@
       <div id="board" class="chess-board"></div>
     </div>
 
-    <!-- شريط النقلات الأفقي (مطابق للفيديو) -->
+    <!-- شريط النقلات الأفقي -->
     <div class="moves-history-bar">
       <div id="movesContainer" class="moves-scroll"></div>
     </div>
 
-    <!-- أزرار التحكم السفلية الضخمة -->
+    <!-- أزرار التحكم -->
     <div class="controls-bar">
       <button id="btnPrev" class="ctrl-btn">‹</button>
       <button id="btnNext" class="ctrl-btn btn-next">التالي ❯</button>
       <button id="btnAuto" class="ctrl-btn">▶</button>
     </div>
 
-    <!-- إدخال الـ PGN -->
+    <!-- قسم رفع PGN -->
     <div class="input-section">
       <textarea id="pgnInput" placeholder="الصق PGN المباراة هنا..."></textarea>
       <button id="btnAnalyze" class="btn-main">تحليل المباراة</button>
@@ -54,10 +283,176 @@
 
   </div>
 
-  <!-- المكتبات البرمجية التشغيلية -->
+  <!-- المكتبات التشغيلية -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="script.js"></script>
+
+  <script>
+    let board = null;
+    let game = new Chess();
+    let history = [];
+    let moveAnalysis = [];
+    let currentMoveIndex = -1;
+    let autoplayTimer = null;
+
+    const pieceVal = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
+
+    function calcEval(cGame) {
+      let score = 0;
+      const b = cGame.board();
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const p = b[r][c];
+          if (p) score += (p.color === 'w' ? 1 : -1) * (pieceVal[p.type] || 0);
+        }
+      }
+      return parseFloat(score.toFixed(1));
+    }
+
+    $(document).ready(function () {
+      board = Chessboard('board', {
+        position: 'start',
+        draggable: false,
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+      });
+
+      $('#btnAnalyze').on('click', function() {
+        parsePGN($('#pgnInput').val());
+      });
+      $('#btnNext').on('click', function() {
+        renderStep(currentMoveIndex + 1);
+      });
+      $('#btnPrev').on('click', function() {
+        renderStep(currentMoveIndex - 1);
+      });
+      $('#btnAuto').on('click', toggleAutoplay);
+
+      $(document).on('keydown', function (e) {
+        if (e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') renderStep(currentMoveIndex + 1);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') renderStep(currentMoveIndex - 1);
+      });
+    });
+
+    function parsePGN(pgn) {
+      const g = new Chess();
+      if (!g.load_pgn(pgn)) {
+        alert('الرجاء التأكد من صحة كود الـ PGN');
+        return;
+      }
+
+      history = g.history({ verbose: true });
+      analyzeMoves();
+      renderHorizontalMoves();
+      renderStep(-1);
+    }
+
+    function analyzeMoves() {
+      const cGame = new Chess();
+      moveAnalysis = [];
+      let prevVal = 0;
+
+      for (let i = 0; i < history.length; i++) {
+        const m = history[i];
+        cGame.move(m);
+        const score = calcEval(cGame);
+        const side = i % 2 === 0 ? 'w' : 'b';
+        const delta = side === 'w' ? (score - prevVal) : (prevVal - score);
+
+        let info = { name: 'نقلة جيدة', icon: '✔️', bg: 'bg-good' };
+
+        if (i < 5) {
+          info = { name: 'نقلة من النظرية', icon: '📖', bg: 'bg-book' };
+        } else if (delta >= 0.7) {
+          info = { name: 'نقلة رائعة!', icon: '‼️', bg: 'bg-great' };
+        } else if (delta >= 0.1) {
+          info = { name: 'الأفضل', icon: '⭐', bg: 'bg-best' };
+        } else if (delta >= -0.4) {
+          info = { name: 'نقلة غير دقيقة', icon: '⁉️', bg: 'bg-inaccuracy' };
+        } else if (delta >= -1.5) {
+          info = { name: 'خطأ', icon: '❓', bg: 'bg-mistake' };
+        } else {
+          info = { name: 'خطأ فادح', icon: '❌', bg: 'bg-blunder' };
+        }
+
+        moveAnalysis.push({
+          eval: score,
+          toSquare: m.to,
+          san: m.san,
+          name: info.name,
+          icon: info.icon,
+          bg: info.bg
+        });
+
+        prevVal = score;
+      }
+    }
+
+    function renderStep(idx) {
+      if (idx < -1 || idx >= history.length) return;
+
+      const g = new Chess();
+      for (let i = 0; i <= idx; i++) g.move(history[i]);
+
+      currentMoveIndex = idx;
+      board.position(g.fen());
+
+      $('.square-eval-badge').remove();
+
+      if (idx >= 0) {
+        const item = moveAnalysis[idx];
+        const scoreStr = item.eval > 0 ? '+' + item.eval : item.eval;
+        
+        $('#evalScore').text(scoreStr);
+        $('#moveTitle').text(item.san + ' - ' + item.name);
+        $('#moveDescription').text('تقييم الموقف: ' + scoreStr);
+
+        const targetSquare = $('#board .square-' + item.toSquare);
+        if (targetSquare.length) {
+          targetSquare.append('<div class="square-eval-badge ' + item.bg + '">' + item.icon + '</div>');
+        }
+
+        let height = 50 + (item.eval * 8);
+        height = Math.max(5, Math.min(95, height));
+        $('#evalBarFill').css('height', height + '%');
+      } else {
+        $('#evalScore').text('+0.0');
+        $('#moveTitle').text('بداية المباراة');
+        $('#moveDescription').text('جاهز للتحليل');
+        $('#evalBarFill').css('height', '50%');
+      }
+
+      $('.chip-move').removeClass('active');
+      if (idx >= 0) $('#chip-' + idx).addClass('active');
+    }
+
+    function renderHorizontalMoves() {
+      const container = $('#movesContainer');
+      container.empty();
+
+      history.forEach(function(m, i) {
+        const btn = '<button id="chip-' + i + '" class="chip-move" onclick="renderStep(' + i + ')">' + m.san + '</button>';
+        container.append(btn);
+      });
+    }
+
+    function toggleAutoplay() {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+        $('#btnAuto').text('▶');
+      } else {
+        $('#btnAuto').text('⏸');
+        autoplayTimer = setInterval(function() {
+          if (currentMoveIndex < history.length - 1) {
+            renderStep(currentMoveIndex + 1);
+          } else {
+            toggleAutoplay();
+          }
+        }, 1000);
+      }
+    }
+  </script>
 </body>
 </html>
