@@ -5,7 +5,6 @@ let moveAnalysis = [];
 let currentMoveIndex = -1;
 let autoplayTimer = null;
 
-// التقييم التقريبي للقطع
 const pieceVal = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
 
 function calcEval(cGame) {
@@ -42,7 +41,7 @@ $(document).ready(function () {
 function parsePGN(pgn) {
   const g = new Chess();
   if (!g.load_pgn(pgn)) {
-    alert('الرجاء التأكد من صحة الـ PGN');
+    alert('الرجاء التأكد من صحة كود الـ PGN');
     return;
   }
 
@@ -110,13 +109,13 @@ function renderStep(idx) {
     $('#moveTitle').text(`${item.san} - ${item.name}`);
     $('#moveDescription').text(`تقييم الموقف: ${scoreStr}`);
 
-    // إضافة شارة التقييم المباشرة على الرقعة
+    // إضافة شارة التقييم المباشرة على الرقعة فوق المربع
     const sq = `$(`#board .square-${item.toSquare}`);
     if (sq.length) {
       sq.append(`<div class="square-eval-badge ${item.bg}">${item.icon}</div>`);
     }
 
-    // شريط التقييم
+    // تحديث شريط التقييم الملون
     let height = 50 + (item.eval * 8);
     height = Math.max(5, Math.min(95, height));
     $('#evalBarFill').css('height', height + '%');
