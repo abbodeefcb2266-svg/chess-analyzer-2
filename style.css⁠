@@ -1,35 +1,87 @@
 :root {
-  --bg-color: #0f172a;
-  --card-bg: #1e293b;
-  --accent-color: #f59e0b;
-  --accent-hover: #d97706;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: #334155;
-  --eval-white: #ffffff;
-  --eval-black: #1e293b;
+  --bg-dark: #161512;
+  --card-bg: #21201d;
+  --accent-green: #81b64c;
+  --text-light: #ffffff;
+  --text-muted: #bababa;
+  --border-color: #312e2b;
+  
+  /* ألوان الشارات Chess.com */
+  --c-best: #96bc4b;
+  --c-great: #5c8bb0;
+  --c-excellent: #96bc4b;
+  --c-good: #a8a8a8;
+  --c-inaccuracy: #f0c15c;
+  --c-mistake: #e6912c;
+  --c-blunder: #ca3431;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
 }
 
 .container {
+  max-width: 950px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 1050px;
+  gap: 12px;
+}
+
+/* شريط التقييم والتعليق العلوي */
+.review-header {
   width: 100%;
 }
 
-@media (min-width: 820px) {
-  .container {
+.eval-banner {
+  background: #262421;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.eval-score-pill {
+  background: #ffffff;
+  color: #000000;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.eval-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.move-name-text {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.move-desc-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* التنسيق الرئيسي */
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .main-layout {
     flex-direction: row;
   }
 }
@@ -41,256 +93,244 @@ body {
   align-items: center;
 }
 
-.game-info {
-  width: 100%;
-  max-width: 520px;
-  background: var(--card-bg);
-  padding: 14px 18px;
-  border-radius: 10px 10px 0 0;
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-.game-result {
-  color: var(--accent-color);
-}
-
-/* حاوية الرقعة وشريط التقييم */
-.board-container {
+.board-wrapper {
   display: flex;
   width: 100%;
-  max-width: 520px;
-  gap: 8px;
-}
-
-/* شريط التقييم vertical eval bar */
-.eval-bar-wrapper {
-  width: 26px;
-  background-color: var(--eval-black);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  max-width: 480px;
+  gap: 6px;
   position: relative;
+}
+
+.eval-bar {
+  width: 16px;
+  background: #262421;
+  border-radius: 4px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  overflow: hidden;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+  border: 1px solid var(--border-color);
 }
 
 .eval-bar-fill {
   width: 100%;
-  background-color: var(--eval-white);
-  transition: height 0.4s ease-out;
-}
-
-.eval-score-text {
-  position: absolute;
-  top: 6px;
-  width: 100%;
-  text-align: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: #f59e0b;
-  text-shadow: 0 0 3px #000;
-  z-index: 2;
+  background: #ffffff;
+  transition: height 0.3s ease;
 }
 
 .board {
   flex: 1;
   aspect-ratio: 1;
+  position: relative;
 }
 
-/* تكبير وتنسيق أزرار التحكم بالحركات */
-.controls {
-  margin-top: 18px;
-  display: flex;
-  gap: 12px;
-  background: var(--card-bg);
-  padding: 10px 20px;
-  border-radius: 40px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.controls button {
-  background: #334155;
-  border: none;
-  color: var(--text-main);
-  font-size: 24px; /* أزرار كبيرة واضحة */
-  font-weight: bold;
-  cursor: pointer;
-  padding: 10px 22px; /* مساحة ضغط كبيرة */
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  min-width: 55px;
+/* أيقونة التقييم فوق المربع في الرقعة */
+.square-eval-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* أزرار التحكم السلسة والكبيرة */
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.controls button {
+  background: #262421;
+  border: 1px solid var(--border-color);
+  color: #fff;
+  font-size: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 1;
+  transition: background 0.2s;
 }
 
 .controls button:hover {
-  background: var(--accent-color);
-  color: #000;
-  transform: translateY(-2px);
+  background: #363431;
 }
 
-.controls button:active {
-  transform: translateY(0);
+.controls .btn-next-main {
+  background: var(--accent-green);
+  font-weight: bold;
+  flex: 2;
+  font-size: 16px;
 }
 
+.controls .btn-next-main:hover {
+  background: #6f9e3f;
+}
+
+/* الشريط الجانبي */
 .sidebar {
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .card {
   background: var(--card-bg);
-  padding: 18px;
-  border-radius: 14px;
+  border-radius: 8px;
+  padding: 14px;
   border: 1px solid var(--border-color);
 }
 
 .card h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 16px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
   color: var(--text-muted);
 }
 
-/* شبكة إحصائيات الدقة */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+.players-accuracy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #181715;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
 }
 
-.stat-box {
-  background: #0f172a;
-  padding: 12px;
-  border-radius: 8px;
+.player-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid var(--border-color);
+  gap: 4px;
 }
 
-.stat-box.highlight {
-  grid-column: span 2;
-  border-color: var(--accent-color);
-  background: #1e1b4b;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 18px;
+.acc-badge {
+  background: var(--accent-green);
+  color: #fff;
   font-weight: bold;
-  color: var(--accent-color);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.vs-divider {
+  font-weight: bold;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.move-types-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  font-size: 12px;
+}
+
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #181715;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.count-val {
+  margin-right: auto;
+  font-weight: bold;
 }
 
 textarea {
   width: 100%;
-  height: 80px;
-  background: #020617;
+  height: 60px;
+  background: #181715;
   border: 1px solid var(--border-color);
-  color: var(--text-main);
-  border-radius: 8px;
-  padding: 10px;
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px;
   box-sizing: border-box;
   resize: none;
-  font-family: monospace;
+  font-size: 11px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-action {
+  flex: 1;
+  background: var(--accent-green);
+  border: none;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-file {
+  background: #363431;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 12px;
 }
 
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.btn-primary {
-  flex: 1;
-  background: var(--accent-color);
-  color: #000;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-.btn-primary:hover {
-  background: var(--accent-hover);
-}
-
-.btn-secondary {
-  background: var(--border-color);
-  color: var(--text-main);
-  padding: 12px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
 .moves-list {
-  max-height: 230px;
+  max-height: 180px;
   overflow-y: auto;
-  font-family: monospace;
+  font-size: 13px;
 }
 
 .move-row {
   display: flex;
-  align-items: center;
-  padding: 6px 8px;
-  border-bottom: 1px solid #33415544;
+  padding: 4px 0;
+  border-bottom: 1px solid #2b2926;
 }
 
-.move-number {
-  width: 35px;
+.move-num {
+  width: 30px;
   color: var(--text-muted);
-  font-weight: bold;
 }
 
 .move-btn {
   flex: 1;
   background: none;
   border: none;
-  color: var(--text-main);
+  color: #fff;
   cursor: pointer;
-  text-align: center;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 13px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: right;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .move-btn.active {
-  background: var(--accent-color);
-  color: #000;
+  background: #363431;
   font-weight: bold;
 }
 
-.eval-badge {
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  margin-right: 4px;
-}
-
-.badge-good { background: #166534; color: #dcfce7; }
-.badge-inaccuracy { background: #854d0e; color: #fef08a; }
-.badge-mistake { background: #9a3412; color: #ffedd5; }
-.badge-blunder { background: #991b1b; color: #fee2e2; }
+/* ألوان الشارات المخصصة */
+.bg-best { background-color: var(--c-best); }
+.bg-great { background-color: var(--c-great); }
+.bg-excellent { background-color: var(--c-excellent); }
+.bg-good { background-color: var(--c-good); }
+.bg-inaccuracy { background-color: var(--c-inaccuracy); }
+.bg-mistake { background-color: var(--c-mistake); }
+.bg-blunder { background-color: var(--c-blunder); }
+.bg-book { background-color: #d5a47d; }
