@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>مراجعة المباراة | Chess Review</title>
   
+  <!-- المكتبات الأساسية لتأمين ظهور الرقعة بالكامل -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
   
   <style>
@@ -16,14 +17,13 @@
       --text-white: #ffffff;
       --text-dim: #bababa;
       
-      /* ألوان Chess.com الرسمية للتقييمات */
-      --c-best: #81b64c;      /* ⭐ أفضل نقلة */
-      --c-great: #5c8bb0;     /* ‼️ نقلة رائعة - مثل الصورة */
-      --c-good: #96bc4b;      /* ✔️ نقلة ممتازة */
-      --c-inaccuracy: #f0c15c;/* ⁉️ غير دقيقة */
-      --c-mistake: #e6912c;   /* ❓ خطأ */
-      --c-blunder: #ca3431;   /* ❌ خطأ فادح */
-      --c-book: #d5a47d;      /* 📖 نظري */
+      --c-best: #96bc4b;
+      --c-great: #5c8bb0;
+      --c-good: #a8a8a8;
+      --c-inaccuracy: #f0c15c;
+      --c-mistake: #e6912c;
+      --c-blunder: #ca3431;
+      --c-book: #d5a47d;
     }
 
     * {
@@ -51,44 +51,7 @@
       gap: 10px;
     }
 
-    /* كارت إحصائيات الدقة (Accuracy Cards) */
-    .accuracy-section {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .acc-card {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid #312e2b;
-      border-radius: 8px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .acc-card.white { border-left: 4px solid #fff; }
-    .acc-card.black { border-left: 4px solid #7a7a7a; }
-
-    .acc-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .acc-title {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .acc-score {
-      font-size: 18px;
-      font-weight: bold;
-      color: #fff;
-    }
-
-    /* البانر العلوي للنقلة الحالية */
+    /* البانر العلوي */
     .header-banner {
       background: var(--banner-bg);
       border-radius: 8px;
@@ -97,6 +60,10 @@
       align-items: center;
       gap: 12px;
       border: 1px solid #312e2b;
+    }
+
+    .coach-avatar {
+      font-size: 24px;
     }
 
     .banner-content {
@@ -122,15 +89,15 @@
 
     .move-title {
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .move-desc {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
     }
 
-    /* الرقعة وشريط التقييم */
+    /* حاوية الرقعة وشريط التقييم */
     .board-container {
       display: flex;
       gap: 6px;
@@ -159,7 +126,6 @@
     .board-box {
       flex: 1;
       width: 100%;
-      position: relative;
     }
 
     #board {
@@ -167,23 +133,22 @@
       position: relative;
     }
 
-    /* شارة التقييم العائمة (مطابقة للصورة بدقة) */
+    /* أيقونات التقييم التفاعلية */
     .square-eval-badge {
       position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 24px;
-      height: 24px;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      font-weight: 900;
+      font-size: 10px;
+      font-weight: bold;
       color: #fff;
-      z-index: 999;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
-      border: 2px solid #fff;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
 
     /* شريط النقلات الأفقي */
@@ -282,26 +247,9 @@
 
   <div class="review-app">
     
-    <!-- قسم إحصائيات دقة اللعب -->
-    <div class="accuracy-section">
-      <div class="acc-card white">
-        <div class="acc-info">
-          <span class="acc-title">دقة الأبيض</span>
-          <span id="whiteAcc" class="acc-score">0.0%</span>
-        </div>
-        <span>♔</span>
-      </div>
-      <div class="acc-card black">
-        <div class="acc-info">
-          <span class="acc-title">دقة الأسود</span>
-          <span id="blackAcc" class="acc-score">0.0%</span>
-        </div>
-        <span>♚</span>
-      </div>
-    </div>
-
-    <!-- البانر العلوي للنقلة -->
+    <!-- البانر العلوي -->
     <div class="header-banner">
+      <div class="coach-avatar">♟️</div>
       <div class="banner-content">
         <div class="eval-pill" id="evalScore">+0.0</div>
         <div class="banner-text">
@@ -342,6 +290,7 @@
 
   </div>
 
+  <!-- مكتبات تشغيلية مستقرة للغاية على الهواتف -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
@@ -369,12 +318,14 @@
     }
 
     $(document).ready(function () {
+      // إعداد الرقعة
       board = Chessboard('board', {
         position: 'start',
         draggable: false,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
       });
 
+      // إعادة ضبط حجم الرقعة لضمان عرضها بشكل كلي فوراً على الموبايل
       setTimeout(function() {
         if (board) board.resize();
       }, 200);
@@ -404,7 +355,6 @@
 
       historyMoves = g.history({ verbose: true });
       analyzeMoves();
-      calculateAccuracy();
       renderHorizontalMoves();
       renderStep(-1);
     }
@@ -421,20 +371,20 @@
         var side = i % 2 === 0 ? 'w' : 'b';
         var delta = side === 'w' ? (score - prevVal) : (prevVal - score);
 
-        var info = { name: 'نقلة ممتازة', icon: '✔️', bg: 'bg-good', quality: 90 };
+        var info = { name: 'نقلة جيدة', icon: '✔️', bg: 'bg-good' };
 
         if (i < 5) {
-          info = { name: 'نقلة كتابية', icon: '📖', bg: 'bg-book', quality: 100 };
+          info = { name: 'نقلة من النظرية', icon: '📖', bg: 'bg-book' };
         } else if (delta >= 0.7) {
-          info = { name: 'نقلة رائعة!', icon: '!!', bg: 'bg-great', quality: 100 };
-        } else if (delta >= 0.0) {
-          info = { name: 'النقلة الأفضل', icon: '⭐', bg: 'bg-best', quality: 98 };
-        } else if (delta >= -0.5) {
-          info = { name: 'غير دقيقة', icon: '⁉', bg: 'bg-inaccuracy', quality: 70 };
+          info = { name: 'نقلة رائعة!', icon: '‼️', bg: 'bg-great' };
+        } else if (delta >= 0.1) {
+          info = { name: 'الأفضل', icon: '⭐', bg: 'bg-best' };
+        } else if (delta >= -0.4) {
+          info = { name: 'نقلة غير دقيقة', icon: '⁉️', bg: 'bg-inaccuracy' };
         } else if (delta >= -1.5) {
-          info = { name: 'خطأ', icon: '❓', bg: 'bg-mistake', quality: 45 };
+          info = { name: 'خطأ', icon: '❓', bg: 'bg-mistake' };
         } else {
-          info = { name: 'خطأ فادح', icon: '❌', bg: 'bg-blunder', quality: 10 };
+          info = { name: 'خطأ فادح', icon: '❌', bg: 'bg-blunder' };
         }
 
         moveAnalysis.push({
@@ -443,34 +393,11 @@
           san: m.san,
           name: info.name,
           icon: info.icon,
-          bg: info.bg,
-          quality: info.quality,
-          side: side
+          bg: info.bg
         });
 
         prevVal = score;
       }
-    }
-
-    function calculateAccuracy() {
-      var wSum = 0, wCount = 0;
-      var bSum = 0, bCount = 0;
-
-      moveAnalysis.forEach(function(item) {
-        if (item.side === 'w') {
-          wSum += item.quality;
-          wCount++;
-        } else {
-          bSum += item.quality;
-          bCount++;
-        }
-      });
-
-      var wAcc = wCount > 0 ? (wSum / wCount).toFixed(1) : '0.0';
-      var bAcc = bCount > 0 ? (bSum / bCount).toFixed(1) : '0.0';
-
-      $('#whiteAcc').text(wAcc + '%');
-      $('#blackAcc').text(bAcc + '%');
     }
 
     function renderStep(idx) {
