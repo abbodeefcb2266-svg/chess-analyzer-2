@@ -6,7 +6,7 @@
   --text-white: #ffffff;
   --text-dim: #bababa;
   
-  /* ألوان التقييمات */
+  /* ألوان التقييمات الرسمية */
   --c-best: #96bc4b;
   --c-great: #5c8bb0;
   --c-good: #a8a8a8;
@@ -111,7 +111,7 @@ body {
   position: relative;
 }
 
-/* شارات التقييم على الرقعة */
+/* الشارات التقييمية العائمة على الرقعة */
 .square-eval-badge {
   position: absolute;
   top: -6px;
@@ -129,7 +129,7 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-/* شريط التنقل الأفقي */
+/* شريط النقلات الأفقي السلس */
 .moves-history-bar {
   background: var(--card-bg);
   border-radius: 6px;
@@ -158,7 +158,7 @@ body {
   font-weight: bold;
 }
 
-/* التحكم السفلي */
+/* أزرار التحكم السفلية */
 .controls-bar {
   display: flex;
   gap: 8px;
