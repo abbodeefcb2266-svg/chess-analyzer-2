@@ -3,19 +3,18 @@ let game = new Chess();
 let history = [];
 let moveAnalysis = [];
 let currentMoveIndex = -1;
-let isPlaying = false;
-let playInterval = null;
+let autoplayTimer = null;
 
-const pieceValues = { p: 1, n: 3, b: 3.2, r: 5, q: 9, k: 0 };
+// التقييم التقريبي للقطع
+const pieceVal = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
 
-// تقييم الوضعية
-function evaluatePosition(cGame) {
-  const b = cGame.board();
+function calcEval(cGame) {
   let score = 0;
+  const b = cGame.board();
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const p = b[r][c];
-      if (p) score += (p.color === 'w' ? 1 : -1) * (pieceValues[p.type] || 0);
+      if (p) score += (p.color === 'w' ? 1 : -1) * (pieceVal[p.type] || 0);
     }
   }
   return parseFloat(score.toFixed(1));
@@ -28,187 +27,133 @@ $(document).ready(function () {
     pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
   });
 
-  $('#btnLoadPgn').on('click', () => loadPGN($('#pgnInput').val()));
-  $('#btnStart').on('click', () => goToMove(-1));
-  $('#btnPrev').on('click', () => goToMove(currentMoveIndex - 1));
-  $('#btnNext').on('click', () => goToMove(currentMoveIndex + 1));
-  $('#btnEnd').on('click', () => goToMove(history.length - 1));
-  $('#btnPlay').on('click', toggleAutoplay);
+  $('#btnAnalyze').on('click', () => parsePGN($('#pgnInput').val()));
+  $('#btnNext').on('click', () => renderStep(currentMoveIndex + 1));
+  $('#btnPrev').on('click', () => renderStep(currentMoveIndex - 1));
+  $('#btnAuto').on('click', toggleAutoplay);
 
-  $('#fileInput').on('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        $('#pgnInput').val(e.target.result);
-        loadPGN(e.target.result);
-      };
-      reader.readAsText(file);
-    }
-  });
-
-  $(document).on('keydown', function (e) {
+  $(document).on('keydown', (e) => {
     if (e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goToMove(currentMoveIndex + 1);
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goToMove(currentMoveIndex - 1);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') renderStep(currentMoveIndex + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') renderStep(currentMoveIndex - 1);
   });
 });
 
-function loadPGN(pgn) {
-  const tempGame = new Chess();
-  if (!tempGame.load_pgn(pgn)) {
-    alert('PGN غير صالح');
+function parsePGN(pgn) {
+  const g = new Chess();
+  if (!g.load_pgn(pgn)) {
+    alert('الرجاء التأكد من صحة الـ PGN');
     return;
   }
 
-  history = tempGame.history({ verbose: true });
-  const header = tempGame.header();
-
-  $('#playerWhite').text(header.White || 'الأبيض');
-  $('#playerBlack').text(header.Black || 'الأسود');
-
-  analyzeGame();
-  renderMovesList();
-  goToMove(-1);
+  history = g.history({ verbose: true });
+  analyzeMoves();
+  renderHorizontalMoves();
+  renderStep(-1);
 }
 
-function analyzeGame() {
+function analyzeMoves() {
   const cGame = new Chess();
   moveAnalysis = [];
-  let prevEval = 0;
-
-  let counts = { best: 0, great: 0, excellent: 0, good: 0, inaccuracy: 0, mistake: 0, blunder: 0 };
+  let prevVal = 0;
 
   for (let i = 0; i < history.length; i++) {
-    const move = history[i];
-    cGame.move(move);
-    const curEval = evaluatePosition(cGame);
-    const turn = i % 2 === 0 ? 'w' : 'b';
-    const diff = turn === 'w' ? (curEval - prevEval) : (prevEval - curEval);
+    const m = history[i];
+    cGame.move(m);
+    const score = calcEval(cGame);
+    const side = i % 2 === 0 ? 'w' : 'b';
+    const delta = side === 'w' ? (score - prevVal) : (prevVal - score);
 
-    let type = 'good', name = 'نقلة جيدة', icon = '✔️', bgClass = 'bg-good';
+    let info = { name: 'نقلة جيدة', icon: '✔️', bg: 'bg-good' };
 
-    if (i < 6) {
-      type = 'book'; name = 'نقلة من النظرية'; icon = '📖'; bgClass = 'bg-book';
-    } else if (diff >= 0.8) {
-      type = 'great'; name = 'نقلة رائعة!'; icon = '‼️'; bgClass = 'bg-great'; counts.great++;
-    } else if (diff >= 0.2) {
-      type = 'best'; name = 'الأفضل'; icon = '⭐'; bgClass = 'bg-best'; counts.best++;
-    } else if (diff >= -0.3) {
-      type = 'excellent'; name = 'ممتازة'; icon = '👍'; bgClass = 'bg-excellent'; counts.excellent++;
-    } else if (diff >= -0.8) {
-      type = 'inaccuracy'; name = 'نقلة غير دقيقة'; icon = '⁉️'; bgClass = 'bg-inaccuracy'; counts.inaccuracy++;
-    } else if (diff >= -1.8) {
-      type = 'mistake'; name = 'خطأ'; icon = '❓'; bgClass = 'bg-mistake'; counts.mistake++;
+    if (i < 5) {
+      info = { name: 'نقلة من النظرية', icon: '📖', bg: 'bg-book' };
+    } else if (delta >= 0.7) {
+      info = { name: 'نقلة رائعة!', icon: '‼️', bg: 'bg-great' };
+    } else if (delta >= 0.1) {
+      info = { name: 'الأفضل', icon: '⭐', bg: 'bg-best' };
+    } else if (delta >= -0.4) {
+      info = { name: 'نقلة غير دقيقة', icon: '⁉️', bg: 'bg-inaccuracy' };
+    } else if (delta >= -1.5) {
+      info = { name: 'خطأ', icon: '❓', bg: 'bg-mistake' };
     } else {
-      type = 'blunder'; name = 'خطأ فادح'; icon = '❌'; bgClass = 'bg-blunder'; counts.blunder++;
+      info = { name: 'خطأ فادح', icon: '❌', bg: 'bg-blunder' };
     }
 
     moveAnalysis.push({
-      eval: curEval,
-      moveSAN: move.san,
-      toSquare: move.to,
-      name: name,
-      icon: icon,
-      bgClass: bgClass
+      eval: score,
+      toSquare: m.to,
+      san: m.san,
+      ...info
     });
 
-    prevEval = curEval;
+    prevVal = score;
   }
-
-  // تحديث العدادات
-  $('#countBest').text(counts.best);
-  $('#countGreat').text(counts.great);
-  $('#countExcellent').text(counts.excellent);
-  $('#countGood').text(counts.good);
-  $('#countInaccuracy').text(counts.inaccuracy);
-  $('#countMistake').text(counts.mistake);
-  $('#countBlunder').text(counts.blunder);
-
-  // حساب دقة تقريبية
-  $('#accWhite').text('85%');
-  $('#accBlack').text('78%');
 }
 
-function goToMove(index) {
-  if (index < -1 || index >= history.length) return;
+function renderStep(idx) {
+  if (idx < -1 || idx >= history.length) return;
 
-  const newGame = new Chess();
-  for (let i = 0; i <= index; i++) {
-    newGame.move(history[i]);
-  }
+  const g = new Chess();
+  for (let i = 0; i <= idx; i++) g.move(history[i]);
 
-  game = newGame;
-  currentMoveIndex = index;
-  board.position(game.fen());
+  currentMoveIndex = idx;
+  board.position(g.fen());
 
-  // مسح العلامات السابقة فوق الرقعة
-  $('.square-eval-icon').remove();
+  $('.square-eval-badge').remove();
 
-  if (index >= 0) {
-    const analysis = moveAnalysis[index];
+  if (idx >= 0) {
+    const item = moveAnalysis[idx];
+    const scoreStr = item.eval > 0 ? `+${item.eval}` : `${item.eval}`;
+    
+    $('#evalScore').text(scoreStr);
+    $('#moveTitle').text(`${item.san} - ${item.name}`);
+    $('#moveDescription').text(`تقييم الموقف: ${scoreStr}`);
 
-    // تحديث البانر العلوي
-    let evalStr = analysis.eval > 0 ? `+${analysis.eval}` : `${analysis.eval}`;
-    $('#bannerEvalScore').text(evalStr);
-    $('#bannerMoveName').text(`${analysis.moveSAN} : ${analysis.name}`);
-    $('#bannerMoveDesc').text(`التقييم الحالي للموقف (${evalStr})`);
-
-    // إظهار الأيقونة فوق المربع مباشرة
-    const squareEl = `$(`#board .square-${analysis.toSquare}`);
-    if (squareEl.length) {
-      const iconHtml = `<div class="square-eval-icon ${analysis.bgClass}">${analysis.icon}</div>`;
-      squareEl.append(iconHtml);
+    // إضافة شارة التقييم المباشرة على الرقعة
+    const sq = `$(`#board .square-${item.toSquare}`);
+    if (sq.length) {
+      sq.append(`<div class="square-eval-badge ${item.bg}">${item.icon}</div>`);
     }
 
-    // تحديث شريط التقييم
-    let fill = 50 + (analysis.eval * 8);
-    fill = Math.max(5, Math.min(95, fill));
-    $('#evalBarFill').css('height', fill + '%');
+    // شريط التقييم
+    let height = 50 + (item.eval * 8);
+    height = Math.max(5, Math.min(95, height));
+    $('#evalBarFill').css('height', height + '%');
   } else {
-    $('#bannerEvalScore').text('+0.0');
-    $('#bannerMoveName').text('بداية المباراة');
-    $('#bannerMoveDesc').text('جاهز للتحليل');
+    $('#evalScore').text('+0.0');
+    $('#moveTitle').text('بداية المباراة');
+    $('#moveDescription').text('جاهز للتحليل');
     $('#evalBarFill').css('height', '50%');
   }
 
-  $('.move-btn').removeClass('active');
-  if (index >= 0) $(`#move-${index}`).addClass('active');
+  $('.chip-move').removeClass('active');
+  if (idx >= 0) $(`#chip-${idx}`).addClass('active');
 }
 
-function renderMovesList() {
-  const container = $('#movesList');
+function renderHorizontalMoves() {
+  const container = $('#movesContainer');
   container.empty();
 
-  for (let i = 0; i < history.length; i += 2) {
-    const moveNo = Math.floor(i / 2) + 1;
-    const w = history[i] ? history[i].san : '';
-    const b = history[i + 1] ? history[i + 1].san : '';
-
-    const row = `
-      <div class="move-row">
-        <span class="move-num">${moveNo}.</span>
-        <button id="move-${i}" class="move-btn" onclick="goToMove(${i})">${w}</button>
-        <button id="move-${i + 1}" class="move-btn" onclick="goToMove(${i + 1})" ${!b ? 'disabled' : ''}>${b}</button>
-      </div>
-    `;
-    container.append(row);
-  }
+  history.forEach((m, i) => {
+    const btn = `<button id="chip-${i}" class="chip-move" onclick="renderStep(${i})">${m.san}</button>`;
+    container.append(btn);
+  });
 }
 
 function toggleAutoplay() {
-  isPlaying = !isPlaying;
-  $('#btnPlay').text(isPlaying ? '⏸' : '▶');
-
-  if (isPlaying) {
-    playInterval = setInterval(() => {
+  if (autoplayTimer) {
+    clearInterval(autoplayTimer);
+    autoplayTimer = null;
+    $('#btnAuto').text('▶');
+  } else {
+    $('#btnAuto').text('⏸');
+    autoplayTimer = setInterval(() => {
       if (currentMoveIndex < history.length - 1) {
-        goToMove(currentMoveIndex + 1);
+        renderStep(currentMoveIndex + 1);
       } else {
         toggleAutoplay();
       }
-    }, 1200);
-  } else {
-    clearInterval(playInterval);
+    }, 1000);
   }
 }
