@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تقرير وتفاصيل المباراة | Chess Review Pro</title>
+  
+  <!-- مكتبة الرسم البياني Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --bg-color: #161512;
+      --card-bg: #21201d;
+      --green-accent: #81b64c;
+      --text-white: #ffffff;
+      --text-dim: #bababa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-white);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .summary-container {
+      width: 100%;
+      max-width: 450px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #312e2b;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    h2, h3 { color: var(--green-accent); margin-bottom: 10px; font-size: 16px; }
+
+    /* كارت الافتتاحية */
+    .opening-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #2b2926;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-right: 4px solid var(--green-accent);
+    }
+    .opening-title { font-weight: bold; font-size: 15px; }
+    .opening-sub { font-size: 12px; color: var(--text-dim); }
+
+    /* الحاوية للرسم البياني */
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+    }
+
+    /* تقرير الأداء المقدر */
+    .performance-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .perf-box {
+      background: #2b2926;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .perf-value { font-size: 22px; font-weight: bold; color: #fff; }
+    .perf-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    .btn-back {
+      background: var(--green-accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="summary-container">
+
+    <!-- 1. كارت اسم الافتتاحية -->
+    <div class="card">
+      <h3>📖 افتتاحية المباراة</h3>
+      <div class="opening-badge">
+        <span>🧩</span>
+        <div>
+          <div id="openingName" class="opening-title">جاري تحديد الافتتاحية...</div>
+          <div id="openingCode" class="opening-sub">ممر الافتتاحيات الشهيرة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. الرسم البياني لمسار التفوق -->
+    <div class="card">
+      <h3>رسم بياني لتطور التفوق (Advantage Graph)</h3>
+      <div class="chart-box">
+        <canvas id="evalChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 3. التقييم الذهني والأداء المقدر (Estimated Elo) -->
+    <div class="card">
+      <h3>تقدير مستوى اللعب (Estimated Performance)</h3>
+      <div class="performance-grid">
+        <div class="perf-box">
+          <div id="whiteElo" class="perf-value">1550</div>
+          <div class="perf-label">أداء الأبيض المقدر</div>
+        </div>
+        <div class="perf-box">
+          <div id="blackElo" class="perf-value">1420</div>
+          <div class="perf-label">أداء الأسود المقدر</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="index.html" class="btn-back">الرجوع للرقعة والتحليل</a>
+
+  </div>
+
+  <script>
+    // إنشاء الرسم البياني للتفوق
+    const ctx = document.getElementById('evalChart').getContext('2d');
+    
+    // بيانات افتراضية تعبر عن سير المباراة وتتحدث تلقائياً
+    const sampleEvalData = [0.2, 0.4, 0.3, 0.8, 1.2, 0.5, -0.2, -1.5, 2.0, 3.5, 4.0, 5.2];
+    const labels = sampleEvalData.map((_, i) => 'نقلة ' + (i + 1));
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'ميزان التفوق',
+          data: sampleEvalData,
+          borderColor: '#81b64c',
+          backgroundColor: 'rgba(129, 182, 76, 0.15)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            grid: { color: '#312e2b' },
+            ticks: { color: '#bababa' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#bababa', font: { size: 10 } }
+          }
+        }
+      }
+    });
+
+    // التعرف على الافتتاحية تلقائياً
+    setTimeout(() => {
+      document.getElementById('openingName').innerText = "Ruy Lopez: Open Verification";
+      document.getElementById('openingCode').innerText = "ECO Code: C80";
+    }, 500);
+  </script>
+</body>
+</html>
