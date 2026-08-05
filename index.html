@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>محلل الشطرنج الاحترافي | PGN Analyzer</title>
+  <title>مراجعة المباراة | Chess Review</title>
   
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
   <link rel="stylesheet" href="style.css">
@@ -11,70 +11,88 @@
 <body>
 
   <div class="container">
-    <div class="board-section">
-      <div class="game-info" id="gameInfo">
-        <span id="playerWhite">الأبيض</span> vs <span id="playerBlack">الأسود</span>
-        <span class="game-result" id="gameResult">*</span>
-      </div>
-
-      <div class="board-container">
-        <div class="eval-bar-wrapper" title="شريط تقييم الموقف">
-          <div id="evalBarFill" class="eval-bar-fill" style="height: 50%;"></div>
-          <span id="evalScoreText" class="eval-score-text">0.0</span>
+    
+    <!-- قسم مراجعة المباراة العلوي -->
+    <div class="review-header">
+      <div id="evalBox" class="eval-banner">
+        <div class="eval-score-pill" id="bannerEvalScore">+0.0</div>
+        <div class="eval-text-group">
+          <span id="bannerMoveName" class="move-name-text">مراجعة المباراة</span>
+          <span id="bannerMoveDesc" class="move-desc-text">الصق PGN للبدء</span>
         </div>
-
-        <div id="board" class="board"></div>
-      </div>
-
-      <div class="controls">
-        <button id="btnStart" title="البداية">«</button>
-        <button id="btnPrev" title="السابق">‹</button>
-        <button id="btnPlay" class="play-btn" title="تشغيل/إيقاف">▶</button>
-        <button id="btnNext" title="التالي">›</button>
-        <button id="btnEnd" title="النهاية">»</button>
       </div>
     </div>
 
-    <div class="sidebar">
-      <div class="card stats-card">
-        <h3>📊 نتائج دقة المباراة</h3>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <span class="stat-label">الافتتاح</span>
-            <span id="accOpening" class="stat-value">--%</span>
+    <div class="main-layout">
+      <!-- قسم الرقعة وشريط التقييم الجانبي -->
+      <div class="board-section">
+        <div class="board-wrapper">
+          <!-- شريط التقييم الأفقي/الرأسي -->
+          <div class="eval-bar">
+            <div id="evalBarFill" class="eval-bar-fill" style="height: 50%;"></div>
           </div>
-          <div class="stat-box">
-            <span class="stat-label">وسط الدور</span>
-            <span id="accMiddle" class="stat-value">--%</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-label">نهاية الدور</span>
-            <span id="accEnd" class="stat-value">--%</span>
-          </div>
-          <div class="stat-box highlight">
-            <span class="stat-label">الدقة الكلية</span>
-            <span id="accTotal" class="stat-value">--%</span>
-          </div>
+
+          <!-- الرقعة -->
+          <div id="board" class="board"></div>
+        </div>
+
+        <!-- شريط التحكم السفلي الضخم -->
+        <div class="controls">
+          <button id="btnStart" title="البداية">«</button>
+          <button id="btnPrev" title="السابق">‹</button>
+          <button id="btnNext" class="btn-next-main">التالي ❯</button>
+          <button id="btnPlay" title="تشغيل">▶</button>
+          <button id="btnEnd" title="النهاية">»</button>
         </div>
       </div>
 
-      <div class="card pgn-input-card">
-        <h3>تحميل مباراة PGN</h3>
-        <textarea id="pgnInput" placeholder="الصق كود الـ PGN هنا أو اسحب ملف .pgn وأسقطه فوق الرقعة..."></textarea>
-        <div class="button-group">
-          <button id="btnLoadPgn" class="btn-primary">تحليل الـ PGN</button>
-          <label for="fileInput" class="btn-secondary">
-            رفع ملف
-            <input type="file" id="fileInput" accept=".pgn" hidden>
-          </label>
-        </div>
-      </div>
+      <!-- القائمة الجانبية (الإحصائيات والسجل) -->
+      <div class="sidebar">
+        <!-- ملخص الدقة والتقييمات -->
+        <div class="card summary-card">
+          <h3>📊 ملخص مراجعة المباراة</h3>
+          <div class="players-accuracy">
+            <div class="player-box">
+              <span id="playerWhite">الأبيض</span>
+              <div id="accWhite" class="acc-badge">--</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="player-box">
+              <span id="playerBlack">الأسود</span>
+              <div id="accBlack" class="acc-badge">--</div>
+            </div>
+          </div>
 
-      <div class="card moves-card">
-        <h3>سجل التحركات وتقييم النقلات</h3>
-        <div id="movesList" class="moves-list"></div>
+          <div class="move-types-list">
+            <div class="type-row"><span class="badge icon-best">⭐</span> الأفضل <span id="countBest" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-great">‼️</span> رائعة <span id="countGreat" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-excellent">👍</span> ممتازة <span id="countExcellent" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-good">✔️</span> جيدة <span id="countGood" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-inaccuracy">⁉️</span> غير دقيقة <span id="countInaccuracy" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-mistake">❓</span> خطأ <span id="countMistake" class="count-val">0</span></div>
+            <div class="type-row"><span class="badge icon-blunder">❌</span> خطأ فادح <span id="countBlunder" class="count-val">0</span></div>
+          </div>
+        </div>
+
+        <!-- إدخال الـ PGN -->
+        <div class="card pgn-card">
+          <textarea id="pgnInput" placeholder="الصق كود الـ PGN هنا..."></textarea>
+          <div class="btn-group">
+            <button id="btnLoadPgn" class="btn-action">تحليل المباراة</button>
+            <label for="fileInput" class="btn-file">
+              رفع ملف
+              <input type="file" id="fileInput" accept=".pgn" hidden>
+            </label>
+          </div>
+        </div>
+
+        <!-- سجل الحركات -->
+        <div class="card moves-card">
+          <div id="movesList" class="moves-list"></div>
+        </div>
       </div>
     </div>
+
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
