@@ -256,7 +256,7 @@
     var historyMoves = [];
     var analysisResults = [];
     var currentIndex = -1;
-    var evalChart = null; // متغير المخطط البياني
+    var evalChart = null;
 
     function calcWinChance(cp) {
       return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
@@ -307,7 +307,7 @@
 
       processAnalysis(evals);
       renderMovesList();
-      drawChart(evals); // تشغيل الرسم البياني
+      drawChart(evals);
       renderStep(-1);
 
       $('#statusMsg').hide();
@@ -420,7 +420,6 @@
       board.position(c.fen());
       $('.square-badge').remove();
 
-      // رسائل المدرب المخصصة لكل نقلة
       const coachMessages = {
         'جيدة': 'نقلة جيدة تحافظ على توازن اللعب.',
         'كتاب': 'هذه النقلة من نظريات الافتتاحيات المعروفة.',
@@ -441,7 +440,6 @@
         $('#moveTitle').text(item.san + ' - ' + item.badge.name);
         $('#moveSub').text('تقييم المحرك: ' + scoreTxt);
 
-        // تحديث رسالة المدرب
         $('#coachText').text(coachMessages[item.badge.name] || 'نقلة ممتازة.');
         $('#coachIcon').text(item.badge.icon);
 
@@ -453,7 +451,6 @@
         var fillH = Math.max(5, Math.min(95, 50 + (ev * 8)));
         $('#evalFill').css('height', fillH + '%');
 
-        // تحديث النقطة النشطة في المخطط البياني
         if (evalChart) {
           evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
           evalChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
@@ -473,7 +470,6 @@
       if (idx >= 0) $('#mbtn-' + idx).addClass('active');
     }
 
-    // دالة رسم المخطط البياني
     function drawChart(evals) {
       if (evalChart) evalChart.destroy();
       var ctx = document.getElementById('evalChart').getContext('2d');
@@ -487,7 +483,7 @@
           labels: labels,
           datasets: [{
             data: dataPoints,
-            borderColor: '#38bdf8', // لون الخط أزرق (AI Blue) ليناسب ثيم هذه الصفحة
+            borderColor: '#38bdf8',
             backgroundColor: 'rgba(56, 189, 248, 0.15)',
             borderWidth: 2,
             fill: true,
