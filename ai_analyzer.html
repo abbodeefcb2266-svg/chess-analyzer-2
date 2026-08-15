@@ -280,11 +280,22 @@
       var chess = new Chess();
 
       if (!chess.load_pgn(pgnText)) {
-        alert("تأكد من إدخال PGN صحيح للمباراة!");
-        return;
+        chess.reset();
+        var movesArray = pgnText.replace(/\d+\./g, '').trim().split(/\s+/);
+        for (let m of movesArray) {
+          if (m) chess.move(m);
+        }
       }
 
       historyMoves = chess.history({ verbose: true });
+
+      if (historyMoves.length === 0) {
+        alert("خطأ: يرجى إدخال PGN صحيح وكامل للمباراة!");
+        $('#statusMsg').hide();
+        $('#btnRun').prop('disabled', false);
+        return;
+      }
+
       $('#btnRun').prop('disabled', true);
       $('#statusMsg').show();
 
