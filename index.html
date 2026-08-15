@@ -9,6 +9,8 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <!-- إضافة مكتبة الرسم البياني Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -206,6 +208,14 @@
       </div>
     </div>
 
+    <!-- صندوق رسالة المدرب -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center;">
+      <div id="coachIcon" style="font-size: 35px;">🦉</div>
+      <div id="coachText" style="font-size: 13px; color: #fff; line-height: 1.5;">
+        أهلاً بك! الصق الـ PGN واضغط للتحليل لنرى كيف كان أداؤك في هذه المباراة.
+      </div>
+    </div>
+
     <div class="eval-banner">
       <div id="evalPill" class="eval-pill">+0.0</div>
       <div>
@@ -220,6 +230,11 @@
     </div>
 
     <div id="movesBar" class="moves-scroll"></div>
+
+    <!-- المخطط البياني للتقييم -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 80px;">
+      <canvas id="evalChart"></canvas>
+    </div>
 
     <div class="controls">
       <button id="btnPrev" class="btn">‹</button>
@@ -239,6 +254,7 @@
     var analysis = [];
     var currentIndex = -1;
     var orientation = 'white';
+    var evalChart = null; // متغير المخطط البياني
 
     function winChance(cp) {
       return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
@@ -261,7 +277,6 @@
       });
     });
 
-    // استدلال متوازي فائق السرعة (Parallel Batch Execution)
     async function runFastAIAnalysis() {
       var pgn = $('#pgnInput').val().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
       var g = new Chess();
@@ -283,20 +298,22 @@
         fens.push(sim.fen());
       }
 
-      // جلب جميع تقييمات المباراة دفعة واحدة بسرعة الصاروخ
       var evalScores = await fetchEvalsInBatches(fens);
 
       calculateResults(evalScores);
       renderMovesList();
+      drawChart(evalScores); // تشغيل الرسم البياني
       renderStep(-1);
 
       $('#status').hide();
       $('#btnAnalyze').prop('disabled', false);
+      $('#coachText').text('اكتمل التحليل! اضغط على زر التالي لمراجعة أداءك وتقييم نقلاتك.');
+      $('#coachIcon').text('✅');
     }
 
     async function fetchEvalsInBatches(fens) {
       var results = [];
-      var batchSize = 12; // 12 نقلة معاً بنفس اللحظة
+      var batchSize = 12;
 
       for (var i = 0; i < fens.length; i += batchSize) {
         var batch = fens.slice(i, i + batchSize);
@@ -309,7 +326,7 @@
     async function fetchSingleFenFast(fen) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 ثانية كحد أقصى للطلب
+        const timeoutId = setTimeout(() => controller.abort(), 1000); 
 
         var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen), { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -326,7 +343,6 @@
       return quickLocalEval(fen);
     }
 
-    // تقييم موضعي سريع جداً في حال عدم توفر السحابة لحظياً
     function quickLocalEval(fen) {
       var c = new Chess(fen);
       if (c.in_checkmate()) return c.turn() === 'w' ? -10000 : 10000;
@@ -409,6 +425,18 @@
       board.position(g.fen());
       $('.square-badge').remove();
 
+      // رسائل المدرب المخصصة لكل نقلة
+      const coachMessages = {
+        'جيدة': 'نقلة جيدة، تحافظ على التوازن في الموقف.',
+        'كتاب': 'نقلة افتتاحية قوية ومثبتة في كتب الشطرنج.',
+        'خطأ فادح': 'أوه لا! هذا خطأ فادح (Blunder) كلفك الكثير من التقييم.',
+        'أضاعت فرصة': 'أضعت فرصة للتقدم أو الفوز بأفضلية هنا.',
+        'خطأ': 'هذا خطأ، لقد منحت خصمك فرصة للسيطرة.',
+        'غير دقيقة': 'نقلة غير دقيقة، كان هناك خيار أفضل متاح.',
+        'رائعة': 'نقلة رائعة وذكية جداً! أحسنت صنعاً.',
+        'الأفضل': 'أفضل نقلة ممكنة حسب المحرك! أداء مثالي.'
+      };
+
       if (idx >= 0) {
         var item = analysis[idx];
         var ev = parseFloat(item.eval);
@@ -418,6 +446,10 @@
         $('#moveTitle').text(item.san + ' - ' + item.badge.name);
         $('#moveSub').text('تقييم المحرك: ' + scoreTxt);
 
+        // تحديث رسالة المدرب
+        $('#coachText').text(coachMessages[item.badge.name] || 'نقلة ممتازة.');
+        $('#coachIcon').text(item.badge.icon);
+
         var sq = $('#board').find('.square-' + item.to);
         if (sq.length) {
           sq.append('<div class="square-badge ' + item.badge.bg + '">' + item.badge.icon + '</div>');
@@ -425,15 +457,61 @@
 
         var fillH = Math.max(5, Math.min(95, 50 + (ev * 8)));
         $('#evalFill').css('height', fillH + '%');
+
+        // تحديث النقطة النشطة في المخطط البياني
+        if (evalChart) {
+          evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
+          evalChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
+          evalChart.update();
+        }
+
       } else {
         $('#evalPill').text('+0.0');
         $('#moveTitle').text('بداية المباراة');
         $('#moveSub').text('اضغط التالي لعرض النقلات');
         $('#evalFill').css('height', '50%');
+        $('#coachText').text('المباراة في البداية. دعنا نرى كيف سارت الأمور!');
+        $('#coachIcon').text('🦉');
       }
 
       $('.chip').removeClass('active');
       if (idx >= 0) $('#mchip-' + idx).addClass('active');
+    }
+
+    // دالة رسم المخطط البياني
+    function drawChart(evals) {
+      if (evalChart) evalChart.destroy();
+      var ctx = document.getElementById('evalChart').getContext('2d');
+      
+      var dataPoints = evals.map(e => Math.max(-10, Math.min(10, e / 100)));
+      var labels = evals.map((_, i) => i);
+
+      evalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataPoints,
+            borderColor: '#facc15', // لون الخط أصفر
+            backgroundColor: 'rgba(250, 204, 21, 0.15)',
+            borderWidth: 2,
+            fill: true,
+            pointRadius: 1, // إخفاء النقاط العادية
+            pointHoverRadius: 6, // تكبير النقطة عند التمرير
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: { x: { display: false }, y: { display: false, min: -10, max: 10 } },
+          plugins: { 
+            legend: { display: false },
+            tooltip: { enabled: false } // إخفاء التولتيب الافتراضي
+          }
+        }
+      });
     }
   </script>
 </body>
