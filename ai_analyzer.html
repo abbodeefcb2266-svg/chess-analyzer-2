@@ -9,6 +9,8 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <!-- إضافة مكتبة الرسم البياني Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -210,6 +212,14 @@
       </div>
     </div>
 
+    <!-- صندوق رسالة المدرب -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center;">
+      <div id="coachIcon" style="font-size: 35px;">🦉</div>
+      <div id="coachText" style="font-size: 13px; color: var(--text-main); line-height: 1.5;">
+        أهلاً بك في التحليل الفائق! الصق الـ PGN واضغط للبدء لنرى التفاصيل الدقيقة لمباراتك.
+      </div>
+    </div>
+
     <div class="banner-eval">
       <div id="scorePill" class="pill-score">+0.0</div>
       <div>
@@ -224,6 +234,11 @@
     </div>
 
     <div id="movesBar" class="moves-bar"></div>
+
+    <!-- المخطط البياني للتقييم -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; height: 80px;">
+      <canvas id="evalChart"></canvas>
+    </div>
 
     <div class="ctrl-row">
       <button id="btnPrev" class="ctrl-btn">‹</button>
@@ -241,8 +256,8 @@
     var historyMoves = [];
     var analysisResults = [];
     var currentIndex = -1;
+    var evalChart = null; // متغير المخطط البياني
 
-    // الخوارزمية الخاصة بحساب نسبة الفوز Win Chance
     function calcWinChance(cp) {
       return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
     }
@@ -292,13 +307,15 @@
 
       processAnalysis(evals);
       renderMovesList();
+      drawChart(evals); // تشغيل الرسم البياني
       renderStep(-1);
 
       $('#statusMsg').hide();
       $('#btnRun').prop('disabled', false);
+      $('#coachText').text('تم التحليل بنجاح! استخدم الأزرار لمراجعة المباراة بالتفصيل.');
+      $('#coachIcon').text('✅');
     }
 
-    // جلب التقييم المباشر الدقيق جداً من خوادم Stockfish السحابية
     async function fetchAIEval(fen) {
       try {
         var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen));
@@ -316,7 +333,6 @@
       }
     }
 
-    // تقييم احتياطي محلي في حال الانقطاع لضمان الاستمرارية
     function fallbackLocalEval(fen) {
       var c = new Chess(fen);
       if (c.in_checkmate()) return c.turn() === 'w' ? -10000 : 10000;
@@ -404,6 +420,18 @@
       board.position(c.fen());
       $('.square-badge').remove();
 
+      // رسائل المدرب المخصصة لكل نقلة
+      const coachMessages = {
+        'جيدة': 'نقلة جيدة تحافظ على توازن اللعب.',
+        'كتاب': 'هذه النقلة من نظريات الافتتاحيات المعروفة.',
+        'خطأ فادح': 'انتبه! لقد ارتكبت خطأ فادحاً هنا.',
+        'أضاعت فرصة': 'كان بإمكانك الحصول على أفضلية أكبر في هذا الموقف.',
+        'خطأ': 'هذا خطأ تكتيكي منح الأفضلية لخصمك.',
+        'غير دقيقة': 'نقلة غير دقيقة، كان من الأفضل التفكير بخيار آخر.',
+        'رائعة': 'نقلة استثنائية! لقد فاجأت المحرك بهذه الرؤية.',
+        'الأفضل': 'أفضل خيار متاح على الرقعة.'
+      };
+
       if (idx >= 0) {
         var item = analysisResults[idx];
         var ev = parseFloat(item.eval);
@@ -413,6 +441,10 @@
         $('#moveTitle').text(item.san + ' - ' + item.badge.name);
         $('#moveSub').text('تقييم المحرك: ' + scoreTxt);
 
+        // تحديث رسالة المدرب
+        $('#coachText').text(coachMessages[item.badge.name] || 'نقلة ممتازة.');
+        $('#coachIcon').text(item.badge.icon);
+
         var sq = $('#board').find('.square-' + item.to);
         if (sq.length) {
           sq.append('<div class="square-badge ' + item.badge.bg + '">' + item.badge.icon + '</div>');
@@ -420,15 +452,61 @@
 
         var fillH = Math.max(5, Math.min(95, 50 + (ev * 8)));
         $('#evalFill').css('height', fillH + '%');
+
+        // تحديث النقطة النشطة في المخطط البياني
+        if (evalChart) {
+          evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
+          evalChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
+          evalChart.update();
+        }
+
       } else {
         $('#scorePill').text('+0.0');
         $('#moveTitle').text('بداية المباراة');
         $('#moveSub').text('اضغط التالي لتعرض النقلات');
         $('#evalFill').css('height', '50%');
+        $('#coachText').text('جاهز للبدء. دعنا نرى ما حدث في هذه المباراة.');
+        $('#coachIcon').text('🦉');
       }
 
       $('.move-btn').removeClass('active');
       if (idx >= 0) $('#mbtn-' + idx).addClass('active');
+    }
+
+    // دالة رسم المخطط البياني
+    function drawChart(evals) {
+      if (evalChart) evalChart.destroy();
+      var ctx = document.getElementById('evalChart').getContext('2d');
+      
+      var dataPoints = evals.map(e => Math.max(-10, Math.min(10, e / 100)));
+      var labels = evals.map((_, i) => i);
+
+      evalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataPoints,
+            borderColor: '#38bdf8', // لون الخط أزرق (AI Blue) ليناسب ثيم هذه الصفحة
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            borderWidth: 2,
+            fill: true,
+            pointRadius: 1,
+            pointHoverRadius: 6,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: { x: { display: false }, y: { display: false, min: -10, max: 10 } },
+          plugins: { 
+            legend: { display: false },
+            tooltip: { enabled: false } 
+          }
+        }
+      });
     }
   </script>
 </body>
