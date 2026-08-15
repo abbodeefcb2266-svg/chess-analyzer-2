@@ -3,38 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>محلل الشطرنج السريع | Turbo AI Chess Analyzer</title>
+  <title>محلل الذكاء الاصطناعي الفائق | AI Chess Analyzer</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <!-- إضافة مكتبة الرسم البياني Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --bg: #0e0e11;
-      --card: #18181c;
-      --accent: #81b64c;
-      --ai-cyan: #38bdf8;
-      --border: #282830;
-      --text: #ffffff;
-      --dim: #94a3b8;
+      --bg-main: #0f0e0d;
+      --card-bg: #1a1917;
+      --border-color: #2e2c29;
+      --green-accent: #81b64c;
+      --ai-blue: #38bdf8;
+      --text-main: #ffffff;
+      --text-muted: #a1a1aa;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-main);
+      color: var(--text-main);
       display: flex;
       justify-content: center;
       padding: 12px;
       min-height: 100vh;
     }
 
-    .container {
+    .app-card {
       width: 100%;
       max-width: 440px;
       display: flex;
@@ -42,42 +41,45 @@
       gap: 12px;
     }
 
-    .header-badge {
-      background: linear-gradient(135deg, #0284c7, #0f172a);
-      border: 1px solid #38bdf8;
-      border-radius: 12px;
+    .header-tag {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid #334155;
+      border-radius: 10px;
       padding: 10px;
       text-align: center;
       font-weight: 800;
-      color: #fff;
-      font-size: 14px;
-      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+      color: var(--ai-blue);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .accuracy-row {
+    .accuracy-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
-    .acc-card {
-      background: var(--card);
-      border: 1px solid var(--border);
+    .acc-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 10px 14px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
-    .acc-card.w { border-bottom: 4px solid #ffffff; }
-    .acc-card.b { border-bottom: 4px solid #64748b; }
+    .acc-item.w { border-bottom: 4px solid #ffffff; }
+    .acc-item.b { border-bottom: 4px solid #64748b; }
 
     .acc-val { font-size: 24px; font-weight: 900; color: #fff; }
-    .acc-lbl { font-size: 11px; color: var(--dim); }
+    .acc-lbl { font-size: 11px; color: var(--text-muted); }
 
-    .eval-banner {
-      background: var(--card);
-      border: 1px solid var(--border);
+    .banner-eval {
+      background: #24221f;
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 10px 14px;
       display: flex;
@@ -85,25 +87,25 @@
       gap: 12px;
     }
 
-    .eval-pill {
+    .pill-score {
       background: #ffffff;
-      color: #000;
+      color: #000000;
       font-weight: 900;
       padding: 5px 12px;
       border-radius: 6px;
       font-size: 15px;
     }
 
-    .board-wrap {
+    .board-container {
       display: flex;
       gap: 8px;
       width: 100%;
     }
 
-    .eval-bar {
+    .eval-bar-v {
       width: 16px;
-      background: #23232b;
-      border: 1px solid var(--border);
+      background: #262421;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
       overflow: hidden;
       display: flex;
@@ -111,19 +113,19 @@
       justify-content: flex-end;
     }
 
-    .eval-fill {
+    .eval-fill-v {
       width: 100%;
       height: 50%;
       background: #ffffff;
-      transition: height 0.2s ease;
+      transition: height 0.3s ease-in-out;
     }
 
     .board-box { flex: 1; position: relative; }
     #board { width: 100% !important; border-radius: 6px; overflow: hidden; }
 
-    .moves-scroll {
-      background: var(--card);
-      border: 1px solid var(--border);
+    .moves-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 8px;
       overflow-x: auto;
@@ -132,37 +134,37 @@
       gap: 6px;
     }
 
-    .chip {
-      background: #25252e;
-      border: 1px solid var(--border);
+    .move-btn {
+      background: #2b2823;
+      border: 1px solid var(--border-color);
       color: #fff;
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 12px;
       cursor: pointer;
     }
-    .chip.active { background: var(--accent); color: #000; font-weight: bold; }
+    .move-btn.active { background: var(--green-accent); color: #000; font-weight: bold; }
 
-    .controls { display: flex; gap: 8px; }
-    .btn { background: #23232b; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold; }
-    .btn-next { background: var(--accent); color: #000; flex: 2; }
+    .ctrl-row { display: flex; gap: 8px; }
+    .ctrl-btn { background: #252320; border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold; }
+    .btn-next { background: var(--green-accent); color: #000; flex: 2; }
 
     textarea {
       width: 100%; height: 75px;
-      background: #121215; border: 1px solid var(--border);
+      background: #151413; border: 1px solid var(--border-color);
       color: #fff; border-radius: 8px; padding: 10px; font-size: 12px; resize: none;
     }
 
-    .btn-analyze {
-      background: linear-gradient(135deg, #38bdf8, #0284c7);
-      border: none; color: #fff;
-      padding: 14px; border-radius: 8px; font-weight: 900;
+    .btn-submit {
+      background: linear-gradient(135deg, #81b64c, #659338);
+      border: none; color: #000;
+      padding: 14px; border-radius: 8px; font-weight: 800;
       cursor: pointer; width: 100%; font-size: 15px;
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 4px 12px rgba(129, 182, 76, 0.2);
     }
 
-    .status {
-      text-align: center; font-size: 13px; color: var(--ai-cyan);
+    .status-msg {
+      text-align: center; font-size: 13px; color: var(--ai-blue);
       font-weight: bold; display: none;
     }
 
@@ -177,6 +179,7 @@
     .bg-brilliant { background: #1baaa0; }
     .bg-great { background: #4b82b6; }
     .bg-best { background: #769656; }
+    .bg-excellent { background: #85a94e; }
     .bg-good { background: #87a96b; }
     .bg-book { background: #d5a47d; }
     .bg-inaccuracy { background: #f0c15c; }
@@ -187,19 +190,19 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="app-card">
     
-    <div class="header-badge">🚀 محلل الشطرنج الفائق السرعة (Turbo AI)</div>
+    <div class="header-tag">🤖 تحليل الذكاء الاصطناعي (AI Stockfish Engine)</div>
 
-    <div class="accuracy-row">
-      <div class="acc-card w">
+    <div class="accuracy-grid">
+      <div class="acc-item w">
         <div>
           <div class="acc-lbl">دقة الأبيض</div>
           <div id="whiteAcc" class="acc-val">--</div>
         </div>
         <span style="font-size:24px;">♔</span>
       </div>
-      <div class="acc-card b">
+      <div class="acc-item b">
         <div>
           <div class="acc-lbl">دقة الأسود</div>
           <div id="blackAcc" class="acc-val">--</div>
@@ -208,55 +211,51 @@
       </div>
     </div>
 
-    <!-- صندوق رسالة المدرب -->
-    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: center;">
       <div id="coachIcon" style="font-size: 35px;">🦉</div>
-      <div id="coachText" style="font-size: 13px; color: #fff; line-height: 1.5;">
-        أهلاً بك! الصق الـ PGN واضغط للتحليل لنرى كيف كان أداؤك في هذه المباراة.
+      <div id="coachText" style="font-size: 13px; color: var(--text-main); line-height: 1.5;">
+        أهلاً بك! الصق النقلات واضغط للبدء بالتحليل.
       </div>
     </div>
 
-    <div class="eval-banner">
-      <div id="evalPill" class="eval-pill">+0.0</div>
+    <div class="banner-eval">
+      <div id="scorePill" class="pill-score">+0.0</div>
       <div>
         <div id="moveTitle" style="font-weight:bold; font-size:14px;">جاهز للتحليل الفوري</div>
-        <div id="moveSub" style="font-size:12px; color:var(--dim);">الصق الـ PGN واضغط للتحليل خلال ثانية واحدة</div>
+        <div id="moveSub" style="font-size:12px; color:var(--text-muted);">الصق PGN المباراة هنا</div>
       </div>
     </div>
 
-    <div class="board-wrap">
-      <div class="eval-bar"><div id="evalFill" class="eval-fill"></div></div>
+    <div class="board-container">
+      <div class="eval-bar-v"><div id="evalFill" class="eval-fill-v"></div></div>
       <div class="board-box"><div id="board"></div></div>
     </div>
 
-    <div id="movesBar" class="moves-scroll"></div>
+    <div id="movesBar" class="moves-bar"></div>
 
-    <!-- المخطط البياني للتقييم -->
-    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 80px;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; height: 80px;">
       <canvas id="evalChart"></canvas>
     </div>
 
-    <div class="controls">
-      <button id="btnPrev" class="btn">‹</button>
-      <button id="btnFlip" class="btn" style="flex:0.8;">🔄</button>
-      <button id="btnNext" class="btn btn-next">التالي ❯</button>
+    <div class="ctrl-row">
+      <button id="btnPrev" class="ctrl-btn">‹</button>
+      <button id="btnNext" class="ctrl-btn btn-next">التالي ❯</button>
     </div>
 
     <textarea id="pgnInput" placeholder="الصق PGN المباراة هنا..."></textarea>
-    <div id="status" class="status">⚡ جاري التحليل السريع جداً...</div>
-    <button id="btnAnalyze" class="btn-analyze">بدء التحليل الفوري (1 ثانية) ⚡</button>
+    <div id="statusMsg" class="status-msg">جاري تحليل النقلات بدقة...</div>
+    <button id="btnRun" class="btn-submit">بدء التحليل الفوري ⚡</button>
 
   </div>
 
   <script>
     var board = null;
     var historyMoves = [];
-    var analysis = [];
+    var analysisResults = [];
     var currentIndex = -1;
-    var orientation = 'white';
-    var evalChart = null; // متغير المخطط البياني
+    var evalChart = null;
 
-    function winChance(cp) {
+    function calcWinChance(cp) {
       return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
     }
 
@@ -268,27 +267,38 @@
       });
 
       $(window).on('resize', function() { if (board) board.resize(); });
-      $('#btnAnalyze').click(runFastAIAnalysis);
+      $('#btnRun').click(startAIAnalysis);
       $('#btnNext').click(function() { renderStep(currentIndex + 1); });
       $('#btnPrev').click(function() { renderStep(currentIndex - 1); });
-      $('#btnFlip').click(function() {
-        orientation = orientation === 'white' ? 'black' : 'white';
-        board.orientation(orientation);
-      });
     });
 
-    async function runFastAIAnalysis() {
-      var pgn = $('#pgnInput').val().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
-      var g = new Chess();
+    async function startAIAnalysis() {
+      var pgnText = $('#pgnInput').val().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+      var chess = new Chess();
 
-      if (!g.load_pgn(pgn)) {
-        alert("الرجاء التأكد من صحة الـ PGN!");
+      if (!chess.load_pgn(pgnText)) {
+        chess.reset();
+        var cleanText = pgnText.replace(/\{[^}]+\}/g, '').replace(/\d+\.(\.\.)?/g, '').replace(/1-0|0-1|1\/2-1\/2/g, '');
+        var tokens = cleanText.trim().split(/\s+/);
+        
+        for (let t of tokens) {
+          if (t && t.length > 1 && !t.includes('.')) {
+            chess.move(t);
+          }
+        }
+      }
+
+      historyMoves = chess.history({ verbose: true });
+
+      if (historyMoves.length === 0) {
+        alert("تنبيه: يرجى التأكد من لصق النقلات بشكل صحيح.");
+        $('#statusMsg').hide();
+        $('#btnRun').prop('disabled', false);
         return;
       }
 
-      historyMoves = g.history({ verbose: true });
-      $('#btnAnalyze').prop('disabled', true);
-      $('#status').text('⚡ جاري التحليل السريع جداً...').show();
+      $('#btnRun').prop('disabled', true);
+      $('#statusMsg').show();
 
       var sim = new Chess();
       var fens = [sim.fen()];
@@ -298,55 +308,46 @@
         fens.push(sim.fen());
       }
 
-      var evalScores = await fetchEvalsInBatches(fens);
+      var evals = [];
 
-      calculateResults(evalScores);
+      for (var k = 0; k < fens.length; k++) {
+        $('#statusMsg').text('جاري تحليل النقلة (' + k + ' من ' + (fens.length - 1) + ')...');
+        var cp = await fetchAIEval(fens[k]);
+        evals.push(cp);
+        await new Promise(r => setTimeout(r, 50));
+      }
+
+      processAnalysis(evals);
       renderMovesList();
-      drawChart(evalScores); // تشغيل الرسم البياني
+      drawChart(evals);
       renderStep(-1);
 
-      $('#status').hide();
-      $('#btnAnalyze').prop('disabled', false);
-      $('#coachText').text('اكتمل التحليل! اضغط على زر التالي لمراجعة أداءك وتقييم نقلاتك.');
+      $('#statusMsg').hide();
+      $('#btnRun').prop('disabled', false);
+      $('#coachText').text('تم تحليل النقلات بنجاح!');
       $('#coachIcon').text('✅');
     }
 
-    async function fetchEvalsInBatches(fens) {
-      var results = [];
-      var batchSize = 12;
-
-      for (var i = 0; i < fens.length; i += batchSize) {
-        var batch = fens.slice(i, i + batchSize);
-        var batchResults = await Promise.all(batch.map(fen => fetchSingleFenFast(fen)));
-        results.push(...batchResults);
-      }
-      return results;
-    }
-
-    async function fetchSingleFenFast(fen) {
+    async function fetchAIEval(fen) {
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1000); 
-
-        var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen), { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          var data = await res.json();
-          if (data && data.pvs && data.pvs[0]) {
-            var pv = data.pvs[0];
-            if (pv.cp !== undefined) return pv.cp;
-            if (pv.mate !== undefined) return pv.mate > 0 ? 10000 : -10000;
-          }
+        var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen));
+        if (!res.ok) return fallbackLocalEval(fen);
+        var data = await res.json();
+        
+        if (data && data.pvs && data.pvs[0]) {
+          var pv = data.pvs[0];
+          if (pv.cp !== undefined) return pv.cp;
+          if (pv.mate !== undefined) return pv.mate > 0 ? 10000 : -10000;
         }
-      } catch (e) {}
-      return quickLocalEval(fen);
+        return fallbackLocalEval(fen);
+      } catch (e) {
+        return fallbackLocalEval(fen);
+      }
     }
 
-    function quickLocalEval(fen) {
+    function fallbackLocalEval(fen) {
       var c = new Chess(fen);
       if (c.in_checkmate()) return c.turn() === 'w' ? -10000 : 10000;
-      if (c.in_draw()) return 0;
       var val = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
       var score = 0;
       var b = c.board();
@@ -359,95 +360,83 @@
       return score;
     }
 
-    function calculateResults(evals) {
-      analysis = [];
+    function processAnalysis(evals) {
+      analysisResults = [];
       var wDrops = [], bDrops = [];
 
       for (var i = 0; i < historyMoves.length; i++) {
         var m = historyMoves[i];
         var side = (i % 2 === 0) ? 'w' : 'b';
-        var prevWin = winChance(side === 'w' ? evals[i] : -evals[i]);
-        var curWin = winChance(side === 'w' ? evals[i+1] : -evals[i+1]);
+        var prevCp = evals[i];
+        var curCp = evals[i+1];
+
+        var prevWin = calcWinChance(side === 'w' ? prevCp : -prevCp);
+        var curWin = calcWinChance(side === 'w' ? curCp : -curCp);
         var drop = Math.max(0, prevWin - curWin);
 
         var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good' };
 
-        if (i < 6) {
-          badge = { name: 'كتاب', icon: '📖', bg: 'bg-book' };
-        } else if (drop > 22) {
+        if (drop > 25) {
           badge = { name: 'خطأ فادح', icon: '??', bg: 'bg-blunder' };
-        } else if (drop > 13) {
+        } else if (drop > 15) {
           badge = { name: 'أضاعت فرصة', icon: '✖', bg: 'bg-miss' };
-        } else if (drop > 7) {
+        } else if (drop > 8) {
           badge = { name: 'خطأ', icon: '?', bg: 'bg-mistake' };
-        } else if (drop > 3.5) {
+        } else if (drop > 4) {
           badge = { name: 'غير دقيقة', icon: '?!', bg: 'bg-inaccuracy' };
-        } else if (drop <= 0 && m.captured) {
-          badge = { name: 'رائعة', icon: '!', bg: 'bg-great' };
-        } else {
+        } else if (drop <= 0.5) {
           badge = { name: 'الأفضل', icon: '★', bg: 'bg-best' };
         }
 
         if (side === 'w') wDrops.push(drop); else bDrops.push(drop);
 
-        analysis.push({
-          eval: (evals[i+1] / 100).toFixed(1),
+        analysisResults.push({
+          eval: (curCp / 100).toFixed(1),
           san: m.san,
           to: m.to,
           badge: badge
         });
       }
 
-      function getAcc(drops) {
+      function getCAPSAccuracy(drops) {
         if (!drops.length) return "0.0%";
         var total = 0;
-        drops.forEach(d => total += Math.min(100, 103 * Math.exp(-0.035 * d)));
+        drops.forEach(d => {
+          var acc = 103 * Math.exp(-0.035 * d);
+          total += Math.min(100, Math.max(0, acc));
+        });
         return (total / drops.length).toFixed(1) + "%";
       }
 
-      $('#whiteAcc').text(getAcc(wDrops));
-      $('#blackAcc').text(getAcc(bDrops));
+      $('#whiteAcc').text(getCAPSAccuracy(wDrops));
+      $('#blackAcc').text(getCAPSAccuracy(bDrops));
     }
 
     function renderMovesList() {
       var box = $('#movesBar').empty();
       historyMoves.forEach((m, i) => {
-        box.append('<button id="mchip-'+i+'" class="chip" onclick="renderStep('+i+')">'+m.san+'</button>');
+        box.append('<button id="mbtn-'+i+'" class="move-btn" onclick="renderStep('+i+')">'+m.san+'</button>');
       });
     }
 
     function renderStep(idx) {
       if (idx < -1 || idx >= historyMoves.length) return;
-      var g = new Chess();
-      for (var i = 0; i <= idx; i++) g.move(historyMoves[i]);
+      var c = new Chess();
+      for (var i = 0; i <= idx; i++) c.move(historyMoves[i]);
 
       currentIndex = idx;
-      board.position(g.fen());
+      board.position(c.fen());
       $('.square-badge').remove();
 
-      // رسائل المدرب المخصصة لكل نقلة
-      const coachMessages = {
-        'جيدة': 'نقلة جيدة، تحافظ على التوازن في الموقف.',
-        'كتاب': 'نقلة افتتاحية قوية ومثبتة في كتب الشطرنج.',
-        'خطأ فادح': 'أوه لا! هذا خطأ فادح (Blunder) كلفك الكثير من التقييم.',
-        'أضاعت فرصة': 'أضعت فرصة للتقدم أو الفوز بأفضلية هنا.',
-        'خطأ': 'هذا خطأ، لقد منحت خصمك فرصة للسيطرة.',
-        'غير دقيقة': 'نقلة غير دقيقة، كان هناك خيار أفضل متاح.',
-        'رائعة': 'نقلة رائعة وذكية جداً! أحسنت صنعاً.',
-        'الأفضل': 'أفضل نقلة ممكنة حسب المحرك! أداء مثالي.'
-      };
-
       if (idx >= 0) {
-        var item = analysis[idx];
+        var item = analysisResults[idx];
         var ev = parseFloat(item.eval);
         var scoreTxt = ev > 0 ? '+' + item.eval : item.eval;
 
-        $('#evalPill').text(scoreTxt);
+        $('#scorePill').text(scoreTxt);
         $('#moveTitle').text(item.san + ' - ' + item.badge.name);
         $('#moveSub').text('تقييم المحرك: ' + scoreTxt);
-
-        // تحديث رسالة المدرب
-        $('#coachText').text(coachMessages[item.badge.name] || 'نقلة ممتازة.');
+        $('#coachText').text('النقلة: ' + item.san + ' (' + item.badge.name + ')');
         $('#coachIcon').text(item.badge.icon);
 
         var sq = $('#board').find('.square-' + item.to);
@@ -458,31 +447,22 @@
         var fillH = Math.max(5, Math.min(95, 50 + (ev * 8)));
         $('#evalFill').css('height', fillH + '%');
 
-        // تحديث النقطة النشطة في المخطط البياني
-        if (evalChart) {
-          evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
-          evalChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
-          evalChart.update();
-        }
-
       } else {
-        $('#evalPill').text('+0.0');
-        $('#moveTitle').text('بداية المباراة');
+        $('#scorePill').text('+0.0');
+        $('#moveTitle').text('بداية المراجعة');
         $('#moveSub').text('اضغط التالي لعرض النقلات');
         $('#evalFill').css('height', '50%');
-        $('#coachText').text('المباراة في البداية. دعنا نرى كيف سارت الأمور!');
+        $('#coachText').text('جاهز لاستعراض النقلات خطوة بخطوة.');
         $('#coachIcon').text('🦉');
       }
 
-      $('.chip').removeClass('active');
-      if (idx >= 0) $('#mchip-' + idx).addClass('active');
+      $('.move-btn').removeClass('active');
+      if (idx >= 0) $('#mbtn-' + idx).addClass('active');
     }
 
-    // دالة رسم المخطط البياني
     function drawChart(evals) {
       if (evalChart) evalChart.destroy();
       var ctx = document.getElementById('evalChart').getContext('2d');
-      
       var dataPoints = evals.map(e => Math.max(-10, Math.min(10, e / 100)));
       var labels = evals.map((_, i) => i);
 
@@ -492,12 +472,12 @@
           labels: labels,
           datasets: [{
             data: dataPoints,
-            borderColor: '#facc15', // لون الخط أصفر
-            backgroundColor: 'rgba(250, 204, 21, 0.15)',
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
             borderWidth: 2,
             fill: true,
-            pointRadius: 1, // إخفاء النقاط العادية
-            pointHoverRadius: 6, // تكبير النقطة عند التمرير
+            pointRadius: 1,
+            pointHoverRadius: 6,
             tension: 0.3
           }]
         },
@@ -506,10 +486,7 @@
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           scales: { x: { display: false }, y: { display: false, min: -10, max: 10 } },
-          plugins: { 
-            legend: { display: false },
-            tooltip: { enabled: false } // إخفاء التولتيب الافتراضي
-          }
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
         }
       });
     }
