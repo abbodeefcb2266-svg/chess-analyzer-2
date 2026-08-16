@@ -3,18 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقرير وتفاصيل المباراة | Chess Review Pro</title>
+  <title>تقرير المباراة | Chess Review Pro</title>
   
-  <!-- مكتبة الرسم البياني Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
     :root {
-      --bg-color: #161512;
-      --card-bg: #21201d;
+      --bg-color: #0f0e0d;
+      --card-bg: #1a1917;
+      --border-color: #2e2c29;
       --green-accent: #81b64c;
+      --green-hover: #6fa33f;
+      --ai-blue: #38bdf8;
       --text-white: #ffffff;
-      --text-dim: #bababa;
+      --text-dim: #a1a1aa;
+      --c-best: #96bc4b;
+      --c-excellent: #85a94e;
+      --c-good: #a8a8a8;
+      --c-inaccuracy: #f0c15c;
+      --c-mistake: #e6912c;
+      --c-blunder: #ca3431;
+      --c-book: #d5a47d;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,12 +43,12 @@
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 12px;
     }
 
     .card {
       background: var(--card-bg);
-      border: 1px solid #312e2b;
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 15px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -47,12 +56,11 @@
 
     h2, h3 { color: var(--green-accent); margin-bottom: 10px; font-size: 15px; }
 
-    /* كارت الافتتاحية */
     .opening-badge {
       display: flex;
       align-items: center;
       gap: 12px;
-      background: #2b2926;
+      background: #24221f;
       padding: 12px 14px;
       border-radius: 8px;
       border-right: 4px solid var(--green-accent);
@@ -60,7 +68,6 @@
     .opening-title { font-weight: bold; font-size: 14px; }
     .opening-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 
-    /* الحاوية للرسم البياني */
     .chart-box {
       position: relative;
       width: 100%;
@@ -68,7 +75,6 @@
       margin-top: 5px;
     }
 
-    /* تقرير الأداء المقدر */
     .performance-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -77,116 +83,239 @@
     }
 
     .perf-box {
-      background: #2b2926;
+      background: #24221f;
       padding: 14px;
       border-radius: 8px;
       text-align: center;
-      border: 1px solid #312e2b;
+      border: 1px solid var(--border-color);
     }
 
-    .perf-value { font-size: 20px; font-weight: bold; color: #fff; }
+    .perf-value { font-size: 22px; font-weight: 900; color: #fff; }
     .perf-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 
-    .btn-back {
-      background: var(--green-accent);
-      color: white;
-      border: none;
-      padding: 12px;
+    .accuracy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .acc-box {
+      background: #24221f;
+      padding: 14px;
       border-radius: 8px;
-      font-weight: bold;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    .acc-box.w { border-bottom: 3px solid #ffffff; }
+    .acc-box.b { border-bottom: 3px solid #64748b; }
+    .acc-value { font-size: 20px; font-weight: 900; color: var(--ai-blue); }
+    .acc-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .stat-chip {
+      background: #24221f;
+      border-radius: 6px;
+      padding: 8px 4px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    .stat-num { font-size: 16px; font-weight: 900; color: #fff; }
+    .stat-lbl { font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+
+    .btn-back {
+      background: linear-gradient(135deg, #81b64c, #659338);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 800;
       cursor: pointer;
       text-align: center;
       text-decoration: none;
       display: block;
-      margin-top: 5px;
-      transition: background 0.2s;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(129, 182, 76, 0.2);
+      transition: transform 0.1s;
     }
+    .btn-back:hover { transform: translateY(-1px); }
 
-    .btn-back:hover { background: #72a242; }
+    .no-data {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
 
   <div class="summary-container">
 
-    <!-- 1. كارت اسم الافتتاحية -->
     <div class="card">
       <h3>📖 افتتاحية المباراة</h3>
       <div class="opening-badge">
         <span style="font-size: 24px;">🧩</span>
         <div>
-          <div id="openingName" class="opening-title">تحليل الافتتاحية...</div>
-          <div id="openingCode" class="opening-sub">ممر النقلات الأولية</div>
+          <div id="openingName" class="opening-title">--</div>
+          <div id="openingCode" class="opening-sub">--</div>
         </div>
       </div>
     </div>
 
-    <!-- 2. الرسم البياني لمسار التفوق -->
     <div class="card">
-      <h3>📈 تطور ميزان التفوق (Advantage Graph)</h3>
+      <h3>📈 تطور ميزان التفوق</h3>
       <div class="chart-box">
         <canvas id="evalChart"></canvas>
       </div>
     </div>
 
-    <!-- 3. الأداء المقدر (Estimated Elo) -->
     <div class="card">
-      <h3>⭐ تقدير مستوى الأداء (Estimated Performance)</h3>
+      <h3>🎯 دقة اللعب (CAPS Accuracy)</h3>
+      <div class="accuracy-grid">
+        <div class="acc-box w">
+          <div id="whiteAcc" class="acc-value">--</div>
+          <div class="acc-label">دقة الأبيض</div>
+        </div>
+        <div class="acc-box b">
+          <div id="blackAcc" class="acc-value">--</div>
+          <div class="acc-label">دقة الأسود</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⭐ تقدير مستوى الأداء (Estimated Elo)</h3>
       <div class="performance-grid">
         <div class="perf-box">
-          <div id="whiteElo" class="perf-value">1500</div>
+          <div id="whiteElo" class="perf-value">--</div>
           <div class="perf-label">أداء الأبيض المقدر</div>
         </div>
         <div class="perf-box">
-          <div id="blackElo" class="perf-value">1500</div>
+          <div id="blackElo" class="perf-value">--</div>
           <div class="perf-label">أداء الأسود المقدر</div>
         </div>
       </div>
     </div>
 
-    <a href="index.html" class="btn-back">الرجوع للرقعة والتحليل</a>
+    <div class="card">
+      <h3>📊 إحصائيات النقلات</h3>
+      <div class="stats-grid">
+        <div class="stat-chip">
+          <div id="statBest" class="stat-num" style="color:var(--c-best)">0</div>
+          <div class="stat-lbl">أفضل</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statExcellent" class="stat-num" style="color:var(--c-excellent)">0</div>
+          <div class="stat-lbl">ممتازة</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statGood" class="stat-num" style="color:var(--c-good)">0</div>
+          <div class="stat-lbl">جيدة</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statBook" class="stat-num" style="color:var(--c-book)">0</div>
+          <div class="stat-lbl">كتاب</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statInaccuracy" class="stat-num" style="color:var(--c-inaccuracy)">0</div>
+          <div class="stat-lbl">غير دقيقة</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statMistake" class="stat-num" style="color:var(--c-mistake)">0</div>
+          <div class="stat-lbl">أخطاء</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statMiss" class="stat-num" style="color:#fa6555">0</div>
+          <div class="stat-lbl">فُوِّتت</div>
+        </div>
+        <div class="stat-chip">
+          <div id="statBlunder" class="stat-num" style="color:var(--c-blunder)">0</div>
+          <div class="stat-lbl">فادحة</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="index.html" class="btn-back">⬅ الرجوع للتحليل</a>
 
   </div>
 
   <script>
-    let evalChart = null;
+    var evalChart = null;
+
+    function formatScore(cp) {
+      if (Math.abs(cp) >= 10000) {
+        var mateIn = cp > 0 ? Math.ceil((20000 - cp) / 100) : Math.ceil((20000 + cp) / 100);
+        return (cp > 0 ? "+M" : "-M") + mateIn;
+      }
+      var val = (cp / 100).toFixed(1);
+      return (cp > 0 ? "+" : "") + val;
+    }
 
     function initSummary() {
-      // محاولة استرجاع بيانات التحليل المحفوظة من الصفحة الرئيسية (localStorage)
-      const savedData = localStorage.getItem('chessAnalysisData');
+      var savedData = localStorage.getItem('chessAnalysisData');
       
-      let evalValues = [0, 0.2, -0.1, 0.5]; // بيانات افتراضية احترازية
-      let openingInfo = { name: "النقلات الحرة / افتتاحيّة غير مسجلة", code: "ECO: A00" };
+      var evalValues = [0, 0.2, -0.1, 0.5];
+      var openingInfo = { name: "لا توجد بيانات محفوظة", code: "قم بالتحليل من الصفحة الرئيسية أولاً" };
+      var whiteAcc = "--";
+      var blackAcc = "--";
+      var whiteElo = "--";
+      var blackElo = "--";
+      var moveStats = { best: 0, excellent: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, miss: 0, blunder: 0 };
 
       if (savedData) {
         try {
-          const parsed = JSON.parse(savedData);
+          var parsed = JSON.parse(savedData);
+          
           if (parsed.evals && parsed.evals.length > 0) {
             evalValues = parsed.evals;
           }
           if (parsed.opening) {
             openingInfo = parsed.opening;
           }
+          if (parsed.whiteAcc) whiteAcc = parsed.whiteAcc;
+          if (parsed.blackAcc) blackAcc = parsed.blackAcc;
+          if (parsed.whiteElo) whiteElo = parsed.whiteElo;
+          if (parsed.blackElo) blackElo = parsed.blackElo;
+          if (parsed.moveStats) moveStats = parsed.moveStats;
         } catch (e) {
-          console.error("خطأ في قراءة البيانات المخزنة", e);
+          console.error("خطأ في قراءة البيانات", e);
         }
       }
 
-      // تحديث واجهة الافتتاحية
       document.getElementById('openingName').innerText = openingInfo.name;
       document.getElementById('openingCode').innerText = openingInfo.code;
+      document.getElementById('whiteAcc').innerText = whiteAcc;
+      document.getElementById('blackAcc').innerText = blackAcc;
+      document.getElementById('whiteElo').innerText = whiteElo;
+      document.getElementById('blackElo').innerText = blackElo;
 
-      // محاكاة تقدير الـ Elo بناءً على دقة التقييمات
-      document.getElementById('whiteElo').innerText = Math.floor(1300 + Math.random() * 300);
-      document.getElementById('blackElo').innerText = Math.floor(1300 + Math.random() * 300);
+      document.getElementById('statBest').innerText = moveStats.best || 0;
+      document.getElementById('statExcellent').innerText = moveStats.excellent || 0;
+      document.getElementById('statGood').innerText = moveStats.good || 0;
+      document.getElementById('statBook').innerText = moveStats.book || 0;
+      document.getElementById('statInaccuracy').innerText = moveStats.inaccuracy || 0;
+      document.getElementById('statMistake').innerText = moveStats.mistake || 0;
+      document.getElementById('statMiss').innerText = moveStats.miss || 0;
+      document.getElementById('statBlunder').innerText = moveStats.blunder || 0;
 
-      // رسم المخطط البياني
       drawSummaryChart(evalValues);
     }
 
     function drawSummaryChart(dataValues) {
-      const ctx = document.getElementById('evalChart').getContext('2d');
-      const labels = dataValues.map((_, i) => 'ن ' + (i + 1));
+      var ctx = document.getElementById('evalChart').getContext('2d');
+      var labels = dataValues.map(function(_, i) { return 'ن ' + (i + 1); });
+
+      var displayValues = dataValues.map(function(e) {
+        if (Math.abs(e) >= 10000) return e > 0 ? 10 : -10;
+        return Math.max(-10, Math.min(10, e / 100));
+      });
 
       if (evalChart) evalChart.destroy();
 
@@ -196,45 +325,64 @@
           labels: labels,
           datasets: [{
             label: 'ميزان التفوق',
-            data: dataValues,
-            borderColor: '#81b64c',
-            backgroundColor: 'rgba(129, 182, 76, 0.15)',
+            data: displayValues,
+            borderColor: '#38bdf8',
+            backgroundColor: function(context) {
+              var chart = context.chart;
+              var area = chart.chartArea;
+              if (!area) return null;
+              var ctx2 = chart.ctx;
+              var gradient = ctx2.createLinearGradient(0, area.top, 0, area.bottom);
+              gradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
+              gradient.addColorStop(0.5, 'rgba(56, 189, 248, 0.05)');
+              gradient.addColorStop(1, 'rgba(239, 68, 68, 0.3)');
+              return gradient;
+            },
             fill: true,
             tension: 0.3,
             pointRadius: dataValues.length > 30 ? 0 : 3,
             pointHoverRadius: 6,
+            pointBackgroundColor: '#38bdf8',
             borderWidth: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a1917',
+              titleColor: '#fff',
+              bodyColor: '#a1a1aa',
+              borderColor: '#2e2c29',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  var idx = context.dataIndex;
+                  var raw = dataValues[idx];
+                  return 'التقييم: ' + formatScore(raw);
+                }
+              }
+            }
           },
           scales: {
             y: {
-              grid: { color: '#312e2b' },
-              ticks: { color: '#bababa', font: { size: 10 } },
+              grid: { color: '#2e2c29' },
+              ticks: { color: '#a1a1aa', font: { size: 10 } },
               min: -10,
               max: 10
             },
             x: {
               grid: { display: false },
-              ticks: { color: '#bababa', font: { size: 9 }, maxTicksLimit: 10 }
+              ticks: { color: '#a1a1aa', font: { size: 9 }, maxTicksLimit: 10 }
             }
           }
         }
       });
     }
 
-    // تشغيل الدالة عند تحميل الصفحة
-    $(document).ready(() => {
-      // إذا كنت تستخدم jQuery، أو ببساطة:
-      initSummary();
-    });
-    
-    // دعم التشغيل العادي بدون مكتبات خارجية إن لم تكن متوفرة
     window.onload = initSummary;
   </script>
 </body>
