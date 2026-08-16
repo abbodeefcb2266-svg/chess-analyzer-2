@@ -137,6 +137,7 @@
       display: flex;
       gap: 8px;
       width: 100%;
+      min-height: 200px;
     }
 
     .eval-bar-v {
@@ -148,6 +149,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      flex-shrink: 0;
     }
 
     .eval-fill-v {
@@ -157,8 +159,21 @@
       transition: height 0.4s ease-in-out;
     }
 
-    .board-box { flex: 1; position: relative; }
-    #board { width: 100% !important; border-radius: 6px; overflow: hidden; }
+    .board-box {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    #board {
+      width: 100% !important;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    #board .board-b72b1 {
+      border-radius: 6px;
+      overflow: hidden;
+    }
 
     .moves-bar {
       background: var(--card-bg);
@@ -182,29 +197,52 @@
       font-size: 12px;
       cursor: pointer;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
     .move-btn:hover { background: #383631; }
     .move-btn.active { background: var(--green-accent); color: #000; font-weight: bold; border-color: var(--green-accent); }
 
     .ctrl-row { display: flex; gap: 8px; }
-    .ctrl-btn { background: #252320; border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold; transition: background 0.2s; }
+    .ctrl-btn {
+      background: #252320;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      flex: 1;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
     .ctrl-btn:hover { background: #383631; }
     .ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-next { background: var(--green-accent); color: #000; flex: 2; }
     .btn-next:hover { background: var(--green-hover); }
 
     textarea {
-      width: 100%; height: 75px;
-      background: #151413; border: 1px solid var(--border-color);
-      color: #fff; border-radius: 8px; padding: 10px; font-size: 12px; resize: none;
+      width: 100%;
+      height: 75px;
+      background: #151413;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      resize: none;
     }
     textarea:focus { outline: none; border-color: var(--green-accent); }
 
     .btn-submit {
       background: linear-gradient(135deg, #81b64c, #659338);
-      border: none; color: #000;
-      padding: 14px; border-radius: 8px; font-weight: 800;
-      cursor: pointer; width: 100%; font-size: 15px;
+      border: none;
+      color: #000;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      font-size: 15px;
       box-shadow: 0 4px 12px rgba(129, 182, 76, 0.2);
       transition: transform 0.1s;
     }
@@ -212,8 +250,11 @@
     .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     .status-msg {
-      text-align: center; font-size: 13px; color: var(--ai-blue);
-      font-weight: bold; display: none;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ai-blue);
+      font-weight: bold;
+      display: none;
     }
 
     .progress-bar {
@@ -232,11 +273,21 @@
     }
 
     .square-badge {
-      position: absolute; top: -6px; right: -6px;
-      width: 26px; height: 26px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900; color: #fff; z-index: 99;
-      border: 2px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #fff;
+      z-index: 99;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
     }
 
     .bg-brilliant { background: #1baaa0; }
@@ -259,13 +310,28 @@
       gap: 10px;
       align-items: center;
     }
+
+    .summary-link {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      color: var(--ai-blue);
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      display: block;
+      transition: background 0.2s;
+    }
+    .summary-link:hover { background: #24221f; }
   </style>
 </head>
 <body>
 
   <div class="app-card">
     
-    <div class="header-tag">🤖 محلل الشطرنج الاحترافي (محرك Lichess + تحليل دقيق)</div>
+    <div class="header-tag">🤖 محلل الشطرنج الاحترافي</div>
 
     <div class="accuracy-grid">
       <div class="acc-item w">
@@ -299,7 +365,7 @@
       <div id="coachIcon" style="font-size: 35px;">🦉</div>
       <div style="flex:1;">
         <div id="coachText" style="font-size: 13px; color: var(--text-main); line-height: 1.5;">
-          أهلاً بك! الصق الـ PGN واضغط "بدء التحليل" لتحليل دقيق يقارن نقلاتك بالأفضل الممكن.
+          أهلاً بك! الصق الـ PGN واضغط "بدء التحليل" لتحليل دقيق.
         </div>
         <div id="bestMoveBox" style="display:none; margin-top:6px;">
           <span class="best-move-pill">الأفضل: <span id="bestMoveText">--</span></span>
@@ -310,14 +376,16 @@
     <div class="banner-eval">
       <div id="scorePill" class="pill-score">+0.0</div>
       <div style="flex:1; min-width:0;">
-        <div id="moveTitle" style="font-weight:bold; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">جاهز للتحليل الاحترافي</div>
+        <div id="moveTitle" style="font-weight:bold; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">جاهز للتحليل</div>
         <div id="moveSub" style="font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الصق PGN المباراة هنا</div>
       </div>
     </div>
 
     <div class="board-container">
       <div class="eval-bar-v"><div id="evalFill" class="eval-fill-v"></div></div>
-      <div class="board-box"><div id="board"></div></div>
+      <div class="board-box">
+        <div id="board"></div>
+      </div>
     </div>
 
     <div id="movesBar" class="moves-bar"></div>
@@ -340,6 +408,8 @@
     
     <button id="btnRun" class="btn-submit">⚡ بدء التحليل الاحترافي</button>
 
+    <a href="summary.html" class="summary-link" id="summaryLink" style="display:none;">📊 عرض التقرير الكامل</a>
+
   </div>
 
   <script>
@@ -350,8 +420,7 @@
     var evalChart = null;
     var allEvals = [];
 
-    // ===== دوال مساعدة =====
-    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
 
     function formatScore(cp) {
       if (cp === null || cp === undefined) return "+0.0";
@@ -376,7 +445,6 @@
       return Math.floor(2000 + (acc - 80) * 30);
     }
 
-    // ===== تقييم محسن (Fallback) =====
     function advancedFallbackEval(fen) {
       var c = new Chess(fen);
       if (c.in_checkmate()) return { cp: c.turn() === 'w' ? -10000 : 10000, bestMove: null };
@@ -410,7 +478,6 @@
       return { cp: score, bestMove: null };
     }
 
-    // ===== جلب التقييم من Lichess =====
     async function fetchAIEval(fen) {
       try {
         var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen) + '&multiPv=3');
@@ -431,19 +498,29 @@
       }
     }
 
-    // ===== تهيئة الرقعة =====
-    $(document).ready(function() {
+    function initBoard() {
+      var boardEl = document.getElementById('board');
+      if (!boardEl) return;
+      boardEl.innerHTML = '';
       board = Chessboard('board', {
         position: 'start',
         draggable: false,
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+        sparePieces: false
       });
+      setTimeout(function() {
+        if (board && board.resize) board.resize();
+      }, 100);
+    }
 
-      $(window).on('resize', function() { if (board) board.resize(); });
+    $(document).ready(function() {
+      setTimeout(initBoard, 50);
+      $(window).on('resize', function() {
+        if (board && board.resize) board.resize();
+      });
       $('#btnRun').click(startAnalysis);
       $('#btnNext').click(function() { renderStep(currentIndex + 1); });
       $('#btnPrev').click(function() { renderStep(currentIndex - 1); });
-      
       $(document).on('keydown', function(e) {
         if (e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') renderStep(currentIndex + 1);
@@ -451,11 +528,9 @@
       });
     });
 
-    // ===== بدء التحليل =====
     async function startAnalysis() {
       var pgnText = $('#pgnInput').val().replace(/[٠-٩]/g, function(d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); });
       var chess = new Chess();
-
       if (!chess.load_pgn(pgnText)) {
         chess.reset();
         var cleanText = pgnText.replace(/\{[^}]+\}/g, '').replace(/\d+\.(\.\.)?/g, '').replace(/1-0|0-1|1\/2-1\/2|\*|1\/2/g, '');
@@ -467,77 +542,60 @@
           }
         }
       }
-
       historyMoves = chess.history({ verbose: true });
-
       if (historyMoves.length === 0) {
         alert("تنبيه: يرجى التأكد من صحة الـ PGN المدخل.");
         return;
       }
-
       $('#btnRun').prop('disabled', true);
       $('#statusMsg').show().text('جاري تحليل المباراة...');
       $('#progressBar').show();
       $('#progressFill').css('width', '0%');
-
+      $('#summaryLink').hide();
       var sim = new Chess();
       var fens = [sim.fen()];
       for (var i = 0; i < historyMoves.length; i++) {
         sim.move(historyMoves[i]);
         fens.push(sim.fen());
       }
-
       allEvals = [];
       analysisResults = [];
-
       for (var k = 0; k < fens.length; k++) {
         var pct = Math.round((k / fens.length) * 100);
         $('#statusMsg').text('تحليل الموقف ' + k + ' من ' + (fens.length - 1) + ' (' + pct + '%)');
         $('#progressFill').css('width', pct + '%');
-        
         var result = await fetchAIEval(fens[k]);
         allEvals.push(result.cp);
         await sleep(250);
       }
-
       processAnalysis(fens);
       renderMovesList();
       drawChart(allEvals);
       renderStep(-1);
-
       $('#progressBar').hide();
       $('#statusMsg').hide();
       $('#btnRun').prop('disabled', false);
       $('#coachText').text('تم التحليل بنجاح! استخدم الأزرار أو الأسهم لمراجعة النقلات.');
       $('#coachIcon').text('✅');
-
+      $('#summaryLink').show();
       saveAnalysis(pgnText);
     }
 
-    // ===== معالجة التحليل =====
     function processAnalysis(fens) {
       var wDrops = [], bDrops = [];
       analysisResults = [];
-
       for (var i = 0; i < historyMoves.length; i++) {
         var m = historyMoves[i];
         var side = m.color;
         var beforeCp = allEvals[i];
         var afterCp = allEvals[i + 1];
         var loss = 0;
-        
-        if (side === 'w') {
-          loss = Math.max(0, (beforeCp - afterCp) / 100);
-        } else {
-          loss = Math.max(0, (afterCp - beforeCp) / 100);
-        }
-        
+        if (side === 'w') loss = Math.max(0, (beforeCp - afterCp) / 100);
+        else loss = Math.max(0, (afterCp - beforeCp) / 100);
         var prevWin = calcWinChance(side === 'w' ? beforeCp : -beforeCp);
         var curWin = calcWinChance(side === 'w' ? afterCp : -afterCp);
         var winDrop = Math.max(0, prevWin - curWin);
-
         var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على توازن الموقف.' };
-        
         if (i < 8) {
           badge = { name: 'كتاب', icon: '📖', bg: 'bg-book', msg: 'نقلة افتتاحية معروفة في النظريات.' };
         } else if (winDrop > 25 || loss > 4.0) {
@@ -555,9 +613,7 @@
         } else if (loss <= 0.3) {
           badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على توازن اللعب.' };
         }
-
         if (side === 'w') wDrops.push(winDrop); else bDrops.push(winDrop);
-
         analysisResults.push({
           eval: afterCp,
           evalStr: formatScore(afterCp),
@@ -569,7 +625,6 @@
           winDrop: winDrop
         });
       }
-
       function getCAPSAccuracy(drops) {
         if (!drops.length) return "0.0%";
         var total = 0;
@@ -579,17 +634,14 @@
         });
         return (total / drops.length).toFixed(1) + "%";
       }
-
       var wAcc = getCAPSAccuracy(wDrops);
       var bAcc = getCAPSAccuracy(bDrops);
-      
       $('#whiteAcc').text(wAcc);
       $('#blackAcc').text(bAcc);
       $('#whiteElo').text(estimateElo(wAcc));
       $('#blackElo').text(estimateElo(bAcc));
     }
 
-    // ===== عرض النقلات =====
     function renderMovesList() {
       var box = $('#movesBar').empty();
       historyMoves.forEach(function(m, i) {
@@ -599,21 +651,17 @@
       });
     }
 
-    // ===== عرض خطوة =====
     function renderStep(idx) {
       if (idx < -1 || idx >= historyMoves.length) return;
       var c = new Chess();
       for (var i = 0; i <= idx; i++) c.move(historyMoves[i]);
-
       currentIndex = idx;
-      board.position(c.fen());
+      if (board && board.position) board.position(c.fen());
       $('.square-badge').remove();
-
       if (idx >= 0) {
         var item = analysisResults[idx];
         var ev = item.eval;
         var scoreTxt = item.evalStr;
-
         $('#scorePill').text(scoreTxt);
         $('#moveTitle').text(item.san + ' - ' + item.badge.name);
         $('#moveSub').text(item.badge.msg);
@@ -621,25 +669,18 @@
         $('#coachIcon').text(item.badge.icon);
         $('#bestMoveBox').show();
         $('#bestMoveText').text('غير متاح');
-
         var sq = $('#board').find('.square-' + item.to);
         if (sq.length) {
           sq.append('<div class="square-badge ' + item.badge.bg + '">' + item.badge.icon + '</div>');
         }
-
         var fillH = 50;
-        if (Math.abs(ev) >= 10000) {
-          fillH = ev > 0 ? 95 : 5;
-        } else {
-          fillH = Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
-        }
+        if (Math.abs(ev) >= 10000) fillH = ev > 0 ? 95 : 5;
+        else fillH = Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
         $('#evalFill').css('height', fillH + '%');
-
         if (evalChart) {
           evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
           evalChart.update();
         }
-
       } else {
         $('#scorePill').text('+0.0');
         $('#moveTitle').text('بداية المباراة');
@@ -649,12 +690,10 @@
         $('#coachIcon').text('🦉');
         $('#bestMoveBox').hide();
       }
-
       $('.move-btn').removeClass('active');
       if (idx >= 0) $('#mbtn-' + idx).addClass('active');
     }
 
-    // ===== رسم بياني =====
     function drawChart(evals) {
       if (evalChart) evalChart.destroy();
       var ctx = document.getElementById('evalChart').getContext('2d');
@@ -663,7 +702,6 @@
         return Math.max(-10, Math.min(10, e / 100));
       });
       var labels = evals.map(function(_, i) { return i; });
-
       evalChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -694,16 +732,67 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
-          scales: { 
-            x: { display: false }, 
-            y: { display: false, min: -10, max: 10 } 
-          },
-          plugins: { 
-            legend: { display: false }, 
-            tooltip: { 
+          scales: { x: { display: false }, y: { display: false, min: -10, max: 10 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
               enabled: true,
               backgroundColor: '#1a1917',
               titleColor: '#fff',
               bodyColor: '#a1a1aa',
               borderColor: '#2e2c29',
-              borderWidth: 
+              borderWidth: 1,
+              callbacks: {
+                title: function() { return ''; },
+                label: function(context) {
+                  var idx = context.dataIndex;
+                  if (idx === 0) return 'بداية: +0.0';
+                  if (analysisResults[idx - 1]) return analysisResults[idx - 1].san + ': ' + analysisResults[idx - 1].evalStr;
+                  return '';
+                }
+              }
+            }
+          },
+          onClick: function(e, elements) {
+            if (elements.length > 0) {
+              var idx = elements[0].index - 1;
+              if (idx >= -1 && idx < historyMoves.length) renderStep(idx);
+            }
+          }
+        }
+      });
+    }
+
+    function saveAnalysis(pgn) {
+      var openingName = "مباراة شطرنج";
+      var ecoCode = "A00";
+      var matchOpening = pgn.match(/\[Opening "([^"]+)"\]/);
+      var matchEco = pgn.match(/\[ECO "([^"]+)"\]/);
+      if (matchOpening) openingName = matchOpening[1];
+      if (matchEco) ecoCode = matchEco[1];
+      var moveStats = { best: 0, excellent: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, miss: 0, blunder: 0 };
+      analysisResults.forEach(function(item) {
+        var name = item.badge.name;
+        if (name === 'الأفضل') moveStats.best++;
+        else if (name === 'ممتازة') moveStats.excellent++;
+        else if (name === 'جيدة') moveStats.good++;
+        else if (name === 'كتاب') moveStats.book++;
+        else if (name === 'غير دقيقة') moveStats.inaccuracy++;
+        else if (name === 'خطأ') moveStats.mistake++;
+        else if (name === 'أضاعت فرصة') moveStats.miss++;
+        else if (name === 'خطأ فادح') moveStats.blunder++;
+      });
+      var payload = {
+        evals: allEvals,
+        opening: { name: openingName, code: ecoCode },
+        whiteAcc: $('#whiteAcc').text(),
+        blackAcc: $('#blackAcc').text(),
+        whiteElo: $('#whiteElo').text(),
+        blackElo: $('#blackElo').text(),
+        moveStats: moveStats
+      };
+      localStorage.setItem('chessAnalysisData', JSON.stringify(payload));
+    }
+  </script>
+</body>
+</html>
