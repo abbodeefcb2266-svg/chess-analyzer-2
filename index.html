@@ -28,8 +28,8 @@ body{background:var(--bg);color:var(--text);display:flex;justify-content:center;
 .pill{background:#fff;color:#000;font-weight:900;padding:5px 12px;border-radius:6px;font-size:15px;flex-shrink:0}
 .best-pill{background:var(--green);color:#000;font-weight:700;padding:3px 8px;border-radius:4px;font-size:11px;margin-top:4px;display:inline-block}
 .board-wrap{display:flex;gap:8px;width:100%;min-height:200px;direction:ltr}
-.eval-bar{width:16px;background:#262421;border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;flex-shrink:0}
-.eval-fill{width:100%;height:50%;background:#fff;transition:height .4s ease}
+.eval-bar{width:16px;background:#262421;border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;flex-shrink:0;position:relative}
+.eval-fill{width:100%;background:#fff;transition:height .4s ease;position:absolute;bottom:0;left:0}
 .board-box{flex:1;position:relative;min-width:0;width:100%}
 #board{width:100%!important;aspect-ratio:1/1;position:relative}
 #board .square-55d63{position:relative!important}
@@ -205,6 +205,7 @@ textarea:focus{outline:none;border-color:var(--green)}
 </div>
 
 <script>
+// ==================== STOCKFISH ENGINE ====================
 var engine = null, engineReady = false, engineQueue = [], currentResolve = null, engineInfo = {};
 
 function initEngine() {
@@ -273,6 +274,7 @@ function getStockfishBestMove(fen) {
     });
 }
 
+// ==================== PST EVAL (Fallback) ====================
 var PST = {
     p: [0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10, 5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5, 5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0],
     n: [-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30, -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30, -40,-20,0,0,0,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50],
@@ -326,9 +328,10 @@ function localEval(fen) {
 }
 
 async function fetchEval(fen) {
+    // 1. Try Lichess Cloud Eval first (most accurate, Stockfish 16+ depth)
     try {
         var controller = new AbortController();
-        var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
+        var timeoutId = setTimeout(function() { controller.abort(); }, 8000);
         var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen) + '&multiPv=1', {
             signal: controller.signal,
             headers: { 'Accept': 'application/json' }
@@ -339,26 +342,33 @@ async function fetchEval(fen) {
             if (data && data.pvs && data.pvs[0]) {
                 var pv = data.pvs[0], cp = 0;
                 if (pv.cp !== undefined) cp = pv.cp;
-                else if (pv.mate !== undefined) cp = pv.mate > 0 ? 10000 + (20 - pv.mate) : -10000 - (20 + pv.mate);
+                else if (pv.mate !== undefined) {
+                    var m = pv.mate;
+                    cp = m > 0 ? (10000 + (20 - m)) : (-10000 - (20 + Math.abs(m)));
+                }
                 var bm = pv.moves ? pv.moves.split(' ')[0] : null;
-                return { cp: cp, best: bm };
+                return { cp: cp, best: bm, source: 'lichess' };
             }
         }
     } catch (e) {}
 
+    // 2. Try Stockfish local engine
     if (engineReady) {
         try {
             var sf = await getStockfishBestMove(fen);
             if (sf && sf.bestMove) {
-                var cp = sf.cp !== null ? sf.cp : (sf.mate !== null ? (sf.mate > 0 ? 10000 + (20 - sf.mate) : -10000 - (20 + sf.mate)) : 0);
-                return { cp: cp, best: sf.bestMove };
+                var cp = sf.cp !== null ? sf.cp : (sf.mate !== null ? (sf.mate > 0 ? 10000 + (20 - sf.mate) : -10000 - (20 + Math.abs(sf.mate))) : 0);
+                return { cp: cp, best: sf.bestMove, source: 'stockfish' };
             }
         } catch (e) {}
     }
 
-    return localEval(fen);
+    // 3. Fallback to local eval
+    var le = localEval(fen);
+    return { cp: le.cp, best: le.best, source: 'local' };
 }
 
+// ==================== APP STATE ====================
 var board = null, historyMoves = [], analysisResults = [], currentIndex = -1, evalChart = null, rChart = null, allEvals = [], autoTimer = null;
 var openFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", openHistory = [];
 
@@ -486,7 +496,7 @@ async function startAnalysis() {
         } catch (e) {
             allEvals.push(0);
         }
-        await sleep(120);
+        await sleep(150);
     }
 
     processAnalysis(fens);
@@ -505,20 +515,31 @@ async function startAnalysis() {
 function processAnalysis(fens) {
     var wD = [], bD = [];
     analysisResults = [];
+
     for (var i = 0; i < historyMoves.length; i++) {
         var m = historyMoves[i], side = m.color;
         var before = allEvals[i], after = allEvals[i + 1];
 
-        // CORRECT loss calculation (same as Lichess/Chess.com)
-        // Evals from Lichess are always from White's perspective
+        // Check if this move delivers checkmate
+        var tempChess = new Chess(fens[i]);
+        tempChess.move(m);
+        var isCheckmate = tempChess.in_checkmate();
+
+        // Calculate centipawn loss
         var loss = side === 'w' ? Math.max(0, (before - after) / 100) : Math.max(0, (after - before) / 100);
+
+        // Calculate win chance drop
         var pw = winChance(side === 'w' ? before : -before);
         var cw = winChance(side === 'w' ? after : -after);
         var wd = Math.max(0, pw - cw);
 
-        var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
-
-        if (i < 8) {
+        // If checkmate, this is the BEST move - force classification
+        var badge;
+        if (isCheckmate) {
+            badge = { name: 'الأفضل', icon: '★', bg: 'bg-best', msg: 'كش مات! أفضل نقلة ممكنة.' };
+            loss = 0;
+            wd = 0;
+        } else if (i < 8) {
             badge = { name: 'كتاب', icon: '📖', bg: 'bg-book', msg: 'نقلة افتتاحية معروفة.' };
         } else if (wd > 25 || loss > 4) {
             badge = { name: 'خطأ فادح', icon: '??', bg: 'bg-blund', msg: 'كارثة! نقلة فادحة تقلب المباراة.' };
@@ -533,6 +554,8 @@ function processAnalysis(fens) {
         } else if (loss <= 0.1) {
             badge = { name: 'ممتازة', icon: '✓', bg: 'bg-excel', msg: 'نقلة قوية جداً قريبة من الأفضل.' };
         } else if (loss <= 0.3) {
+            badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
+        } else {
             badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
         }
 
@@ -587,7 +610,13 @@ function renderStep(idx) {
             }
         }, 50);
 
-        var fh = Math.abs(ev) >= 10000 ? (ev > 0 ? 95 : 5) : Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
+        // Eval bar: positive = white advantage (fill from bottom)
+        var fh;
+        if (Math.abs(ev) >= 10000) {
+            fh = ev > 0 ? 95 : 5;
+        } else {
+            fh = Math.max(5, Math.min(95, 50 + (ev / 100) * 3));
+        }
         $('#eFill').css('height', fh + '%');
 
         if (evalChart) {
