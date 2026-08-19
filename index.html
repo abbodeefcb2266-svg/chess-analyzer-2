@@ -1,798 +1,422 @@
-<!DOCTYPE html>
+
+html = '''<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>محلل الشطرنج الاحترافي | Pro Chess Analyzer</title>
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>محلل الشطرنج الاحترافي | Pro Chess Analyzer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#0f0e0d;--card:#1a1917;--border:#2e2c29;--green:#81b64c;--green-h:#6fa33f;--blue:#38bdf8;--text:#fff;--dim:#a1a1aa;--c-best:#96bc4b;--c-excel:#85a94e;--c-good:#a8a8a8;--c-book:#d5a47d;--c-inacc:#f0c15c;--c-mist:#e6912c;--c-miss:#fa6555;--c-blund:#ca3431}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:12px;min-height:100vh}
+.app-card{width:100%;max-width:440px;display:flex;flex-direction:column;gap:10px}
+.header-tag{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:10px;padding:10px;text-align:center;font-weight:800;color:var(--blue);font-size:15px}
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acc-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.acc-item.w{border-bottom:4px solid #fff}.acc-item.b{border-bottom:4px solid #64748b}
+.acc-val{font-size:22px;font-weight:900}.acc-lbl{font-size:11px;color:var(--dim)}
+.elo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.elo-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:center}
+.elo-val{font-size:17px;font-weight:900;color:var(--blue)}.elo-lbl{font-size:10px;color:var(--dim)}
+.banner{background:#24221f;border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.pill{background:#fff;color:#000;font-weight:900;padding:5px 12px;border-radius:6px;font-size:15px;flex-shrink:0}
+.best-pill{background:var(--green);color:#000;font-weight:700;padding:3px 8px;border-radius:4px;font-size:11px;margin-top:4px;display:inline-block}
+.board-wrap{display:flex;gap:8px;width:100%;min-height:200px}
+.eval-bar{width:16px;background:#262421;border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;flex-shrink:0}
+.eval-fill{width:100%;height:50%;background:#fff;transition:height .4s ease}
+.board-box{flex:1;position:relative;min-width:0}
+#board{width:100%!important;border-radius:6px;overflow:hidden}
+.moves-bar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;overflow-x:auto;white-space:nowrap;display:flex;gap:6px}
+.move-btn{background:#2b2823;border:1px solid var(--border);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.move-btn:hover{background:#383631}.move-btn.active{background:var(--green);color:#000;font-weight:700;border-color:var(--green)}
+.ctrl-row{display:flex;gap:8px}
+.ctrl-btn{background:#252320;border:1px solid var(--border);color:#fff;padding:12px;border-radius:8px;font-size:16px;cursor:pointer;flex:1;font-weight:700;transition:background .2s}
+.ctrl-btn:hover{background:#383631}.ctrl-btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-next{background:var(--green);color:#000;flex:2}.btn-next:hover{background:var(--green-h)}
+textarea{width:100%;height:70px;background:#151413;border:1px solid var(--border);color:#fff;border-radius:8px;padding:10px;font-size:12px;resize:none}
+textarea:focus{outline:none;border-color:var(--green)}
+.btn-run{background:linear-gradient(135deg,#81b64c,#659338);border:none;color:#000;padding:14px;border-radius:8px;font-weight:800;cursor:pointer;width:100%;font-size:15px;box-shadow:0 4px 12px rgba(129,182,76,.2)}
+.btn-run:hover{transform:translateY(-1px)}.btn-run:disabled{opacity:.6;transform:none}
+.status{text-align:center;font-size:13px;color:var(--blue);font-weight:700;display:none}
+.prog-bar{width:100%;height:4px;background:#2e2c29;border-radius:2px;overflow:hidden;display:none}
+.prog-fill{height:100%;background:var(--green);width:0%;transition:width .3s}
+.badge{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;z-index:99;border:2px solid #fff;box-shadow:0 4px 8px rgba(0,0,0,.6)}
+.bg-best{background:var(--c-best)}.bg-excel{background:var(--c-excel)}.bg-good{background:var(--c-good)}.bg-book{background:var(--c-book)}
+.bg-inacc{background:var(--c-inacc)}.bg-mist{background:var(--c-mist)}.bg-miss{background:var(--c-miss)}.bg-blund{background:var(--c-blund)}
+.coach{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center}
 
-  <style>
-    :root {
-      --bg-main: #0f0e0d;
-      --card-bg: #1a1917;
-      --border-color: #2e2c29;
-      --green-accent: #81b64c;
-      --green-hover: #6fa33f;
-      --ai-blue: #38bdf8;
-      --text-main: #ffffff;
-      --text-muted: #a1a1aa;
-      --c-best: #96bc4b;
-      --c-great: #5c8bb0;
-      --c-excellent: #85a94e;
-      --c-good: #a8a8a8;
-      --c-book: #d5a47d;
-      --c-inaccuracy: #f0c15c;
-      --c-mistake: #e6912c;
-      --c-miss: #fa6555;
-      --c-blunder: #ca3431;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      padding: 12px;
-      min-height: 100vh;
-    }
-
-    .app-card {
-      width: 100%;
-      max-width: 440px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .header-tag {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      font-weight: 800;
-      color: var(--ai-blue);
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .accuracy-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .acc-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .acc-item.w { border-bottom: 4px solid #ffffff; }
-    .acc-item.b { border-bottom: 4px solid #64748b; }
-
-    .acc-val { font-size: 24px; font-weight: 900; color: #fff; }
-    .acc-lbl { font-size: 11px; color: var(--text-muted); }
-
-    .elo-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .elo-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 8px 14px;
-      text-align: center;
-    }
-    .elo-val { font-size: 18px; font-weight: 900; color: var(--ai-blue); }
-    .elo-lbl { font-size: 10px; color: var(--text-muted); }
-
-    .banner-eval {
-      background: #24221f;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .pill-score {
-      background: #ffffff;
-      color: #000000;
-      font-weight: 900;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .best-move-pill {
-      background: var(--green-accent);
-      color: #000;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      margin-top: 4px;
-      display: inline-block;
-    }
-
-    .board-container {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      min-height: 200px;
-    }
-
-    .eval-bar-v {
-      width: 16px;
-      background: #262421;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      flex-shrink: 0;
-    }
-
-    .eval-fill-v {
-      width: 100%;
-      height: 50%;
-      background: #ffffff;
-      transition: height 0.4s ease-in-out;
-    }
-
-    .board-box {
-      flex: 1;
-      position: relative;
-      min-width: 0;
-    }
-
-    #board {
-      width: 100% !important;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    #board .board-b72b1 {
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .moves-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-      display: flex;
-      gap: 6px;
-      scrollbar-width: thin;
-      scrollbar-color: #383631 transparent;
-    }
-
-    .move-btn {
-      background: #2b2823;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-    .move-btn:hover { background: #383631; }
-    .move-btn.active { background: var(--green-accent); color: #000; font-weight: bold; border-color: var(--green-accent); }
-
-    .ctrl-row { display: flex; gap: 8px; }
-    .ctrl-btn {
-      background: #252320;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      flex: 1;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .ctrl-btn:hover { background: #383631; }
-    .ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-next { background: var(--green-accent); color: #000; flex: 2; }
-    .btn-next:hover { background: var(--green-hover); }
-
-    textarea {
-      width: 100%;
-      height: 75px;
-      background: #151413;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 12px;
-      resize: none;
-    }
-    textarea:focus { outline: none; border-color: var(--green-accent); }
-
-    .btn-submit {
-      background: linear-gradient(135deg, #81b64c, #659338);
-      border: none;
-      color: #000;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 800;
-      cursor: pointer;
-      width: 100%;
-      font-size: 15px;
-      box-shadow: 0 4px 12px rgba(129, 182, 76, 0.2);
-      transition: transform 0.1s;
-    }
-    .btn-submit:hover { transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .status-msg {
-      text-align: center;
-      font-size: 13px;
-      color: var(--ai-blue);
-      font-weight: bold;
-      display: none;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: #2e2c29;
-      border-radius: 2px;
-      overflow: hidden;
-      display: none;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--green-accent);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .square-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 900;
-      color: #fff;
-      z-index: 99;
-      border: 2px solid #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-    }
-
-    .bg-brilliant { background: #1baaa0; }
-    .bg-great { background: #4b82b6; }
-    .bg-best { background: var(--c-best); }
-    .bg-excellent { background: var(--c-excellent); }
-    .bg-good { background: var(--c-good); }
-    .bg-book { background: var(--c-book); }
-    .bg-inaccuracy { background: var(--c-inaccuracy); }
-    .bg-mistake { background: var(--c-mistake); }
-    .bg-miss { background: var(--c-miss); }
-    .bg-blunder { background: var(--c-blunder); }
-
-    .coach-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .summary-link {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      color: var(--ai-blue);
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-      display: block;
-      transition: background 0.2s;
-    }
-    .summary-link:hover { background: #24221f; }
-  </style>
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:999;overflow-y:auto;padding:15px}
+.modal-content{background:var(--bg);max-width:480px;margin:0 auto;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.modal-header{background:var(--card);padding:15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.modal-header h2{color:var(--green);font-size:16px}.modal-close{background:none;border:none;color:var(--dim);font-size:24px;cursor:pointer}
+.modal-body{padding:15px;display:flex;flex-direction:column;gap:12px}
+.tab-bar{display:flex;gap:4px;background:var(--card);padding:4px;border-radius:8px}
+.tab-btn{flex:1;padding:10px;border:none;background:transparent;color:var(--dim);border-radius:6px;font-weight:700;cursor:pointer;font-size:13px}
+.tab-btn.active{background:var(--green);color:#000}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat-chip{background:#24221f;border-radius:6px;padding:8px 4px;text-align:center;border:1px solid var(--border)}
+.stat-num{font-size:15px;font-weight:900}.stat-lbl{font-size:9px;color:var(--dim);margin-top:2px}
+.chart-box{position:relative;width:100%;height:180px}
+.opening-grid{display:flex;flex-direction:column;gap:8px}
+.opening-row{background:#24221f;border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s}
+.opening-row:hover{background:#2e2c29}
+.opening-san{font-weight:700;font-size:14px}.opening-stats{font-size:11px;color:var(--dim)}
+.opening-bar{height:4px;background:#2e2c29;border-radius:2px;margin-top:6px;overflow:hidden}
+.opening-bar-fill{height:100%;background:var(--green);border-radius:2px}
+.eco-badge{background:var(--green);color:#000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.nav-btns{display:flex;gap:8px;margin-top:8px}
+.nav-btn{flex:1;padding:10px;border:1px solid var(--border);background:#252320;color:#fff;border-radius:6px;cursor:pointer;font-weight:700}
+.nav-btn:hover{background:#383631}
+.breadcrumb{font-size:12px;color:var(--dim);margin-bottom:8px}
+.breadcrumb span{cursor:pointer;color:var(--blue)}.breadcrumb span:hover{text-decoration:underline}
+.arrow-box{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.arrow-btn{background:var(--card);border:1px solid var(--border);color:var(--blue);padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700}
+</style>
 </head>
 <body>
 
-  <div class="app-card">
-    
-    <div class="header-tag">🤖 محلل الشطرنج الاحترافي</div>
+<div class="app-card">
+<div class="header-tag">🤖 محلل الشطرنج الاحترافي</div>
 
-    <div class="accuracy-grid">
-      <div class="acc-item w">
-        <div>
-          <div class="acc-lbl">دقة الأبيض (CAPS)</div>
-          <div id="whiteAcc" class="acc-val">--</div>
-        </div>
-        <span style="font-size:24px;">♔</span>
-      </div>
-      <div class="acc-item b">
-        <div>
-          <div class="acc-lbl">دقة الأسود (CAPS)</div>
-          <div id="blackAcc" class="acc-val">--</div>
-        </div>
-        <span style="font-size:24px;">♚</span>
-      </div>
-    </div>
+<div class="acc-grid">
+<div class="acc-item w"><div><div class="acc-lbl">دقة الأبيض</div><div id="wAcc" class="acc-val">--</div></div><span style="font-size:22px">♔</span></div>
+<div class="acc-item b"><div><div class="acc-lbl">دقة الأسود</div><div id="bAcc" class="acc-val">--</div></div><span style="font-size:22px">♚</span></div>
+</div>
 
-    <div class="elo-grid">
-      <div class="elo-item">
-        <div id="whiteElo" class="elo-val">--</div>
-        <div class="elo-lbl">تقدير أداء الأبيض</div>
-      </div>
-      <div class="elo-item">
-        <div id="blackElo" class="elo-val">--</div>
-        <div class="elo-lbl">تقدير أداء الأسود</div>
-      </div>
-    </div>
+<div class="elo-grid">
+<div class="elo-item"><div id="wElo" class="elo-val">--</div><div class="elo-lbl">أداء الأبيض</div></div>
+<div class="elo-item"><div id="bElo" class="elo-val">--</div><div class="elo-lbl">أداء الأسود</div></div>
+</div>
 
-    <div class="coach-box">
-      <div id="coachIcon" style="font-size: 35px;">🦉</div>
-      <div style="flex:1;">
-        <div id="coachText" style="font-size: 13px; color: var(--text-main); line-height: 1.5;">
-          أهلاً بك! الصق الـ PGN واضغط "بدء التحليل" لتحليل دقيق.
-        </div>
-        <div id="bestMoveBox" style="display:none; margin-top:6px;">
-          <span class="best-move-pill">الأفضل: <span id="bestMoveText">--</span></span>
-        </div>
-      </div>
-    </div>
+<div class="coach">
+<div id="cIcon" style="font-size:32px">🦉</div>
+<div style="flex:1">
+<div id="cText" style="font-size:13px;line-height:1.5">أهلاً! الصق الـ PGN واضغط "بدء التحليل".</div>
+<div id="bestBox" style="display:none;margin-top:4px"><span class="best-pill">الأفضل: <span id="bestTxt">--</span></span></div>
+</div>
+</div>
 
-    <div class="banner-eval">
-      <div id="scorePill" class="pill-score">+0.0</div>
-      <div style="flex:1; min-width:0;">
-        <div id="moveTitle" style="font-weight:bold; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">جاهز للتحليل</div>
-        <div id="moveSub" style="font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الصق PGN المباراة هنا</div>
-      </div>
-    </div>
+<div class="banner">
+<div id="scorePill" class="pill">+0.0</div>
+<div style="flex:1;min-width:0">
+<div id="mTitle" style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">جاهز للتحليل</div>
+<div id="mSub" style="font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">الصق PGN المباراة هنا</div>
+</div>
+</div>
 
-    <div class="board-container">
-      <div class="eval-bar-v"><div id="evalFill" class="eval-fill-v"></div></div>
-      <div class="board-box">
-        <div id="board"></div>
-      </div>
-    </div>
+<div class="board-wrap">
+<div class="eval-bar"><div id="eFill" class="eval-fill"></div></div>
+<div class="board-box"><div id="board"></div></div>
+</div>
 
-    <div id="movesBar" class="moves-bar"></div>
+<div id="movesBar" class="moves-bar"></div>
 
-    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; height: 80px;">
-      <canvas id="evalChart"></canvas>
-    </div>
+<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;height:75px">
+<canvas id="evalChart"></canvas>
+</div>
 
-    <div class="ctrl-row">
-      <button id="btnPrev" class="ctrl-btn">‹ سابق</button>
-      <button id="btnNext" class="ctrl-btn btn-next">التالي ❯</button>
-    </div>
+<div class="ctrl-row">
+<button id="btnPrev" class="ctrl-btn">‹ سابق</button>
+<button id="btnNext" class="ctrl-btn btn-next">التالي ❯</button>
+</div>
 
-    <textarea id="pgnInput" placeholder="الصق PGN المباراة هنا...
-مثال:
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 ..."></textarea>
-    
-    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
-    <div id="statusMsg" class="status-msg">جاري التحضير...</div>
-    
-    <button id="btnRun" class="btn-submit">⚡ بدء التحليل الاحترافي</button>
+<div class="ctrl-row">
+<button id="btnAuto" class="ctrl-btn" style="font-size:13px">▶ تشغيل</button>
+<button id="btnOpenings" class="ctrl-btn" style="font-size:13px">📖 افتتاحيات</button>
+<button id="btnReport" class="ctrl-btn" style="font-size:13px">📊 تقرير</button>
+</div>
 
-    <a href="summary.html" class="summary-link" id="summaryLink" style="display:none;">📊 عرض التقرير الكامل</a>
+<textarea id="pgnIn" placeholder="الصق PGN المباراة هنا...
+مثال: 1.e4 e5 2.Nf3 Nc6 3.Bb5"></textarea>
+<div class="prog-bar" id="pBar"><div class="prog-fill" id="pFill"></div></div>
+<div id="status" class="status">جاري التحضير...</div>
+<button id="btnRun" class="btn-run">⚡ بدء التحليل</button>
+</div>
 
-  </div>
+<!-- Modal -->
+<div class="modal" id="modal">
+<div class="modal-content">
+<div class="modal-header"><h2 id="modalTitle">التقرير</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+<div class="modal-body">
+<div class="tab-bar">
+<button class="tab-btn active" onclick="switchTab('report')">📊 التقرير</button>
+<button class="tab-btn" onclick="switchTab('openings')">📖 الافتتاحيات</button>
+</div>
 
-  <script>
-    var board = null;
-    var historyMoves = [];
-    var analysisResults = [];
-    var currentIndex = -1;
-    var evalChart = null;
-    var allEvals = [];
+<div id="tab-report" class="tab-panel active">
+<div class="card" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px">
+<h3 style="color:var(--green);font-size:14px;margin-bottom:8px">📖 الافتتاحية</h3>
+<div style="display:flex;align-items:center;gap:10px;background:#24221f;padding:10px;border-radius:8px;border-right:3px solid var(--green)">
+<span style="font-size:22px">🧩</span><div><div id="rOpenName" style="font-weight:700;font-size:14px">--</div><div id="rOpenCode" style="font-size:12px;color:var(--dim)">--</div></div>
+</div>
+</div>
+<div class="card" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px">
+<h3 style="color:var(--green);font-size:14px;margin-bottom:8px">📈 ميزان التفوق</h3>
+<div class="chart-box"><canvas id="rChart"></canvas></div>
+</div>
+<div class="card" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px">
+<h3 style="color:var(--green);font-size:14px;margin-bottom:8px">🎯 الدقة</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="background:#24221f;padding:12px;border-radius:8px;text-align:center;border-bottom:3px solid #fff"><div id="rWAcc" style="font-size:18px;font-weight:900;color:var(--blue)">--</div><div style="font-size:11px;color:var(--dim)">الأبيض</div></div>
+<div style="background:#24221f;padding:12px;border-radius:8px;text-align:center;border-bottom:3px solid #64748b"><div id="rBAcc" style="font-size:18px;font-weight:900;color:var(--blue)">--</div><div style="font-size:11px;color:var(--dim)">الأسود</div></div>
+</div>
+</div>
+<div class="card" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px">
+<h3 style="color:var(--green);font-size:14px;margin-bottom:8px">⭐ تقدير Elo</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="background:#24221f;padding:12px;border-radius:8px;text-align:center"><div id="rWElo" style="font-size:20px;font-weight:900">--</div><div style="font-size:11px;color:var(--dim)">أبيض</div></div>
+<div style="background:#24221f;padding:12px;border-radius:8px;text-align:center"><div id="rBElo" style="font-size:20px;font-weight:900">--</div><div style="font-size:11px;color:var(--dim)">أسود</div></div>
+</div>
+</div>
+<div class="card" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px">
+<h3 style="color:var(--green);font-size:14px;margin-bottom:8px">📊 إحصائيات النقلات</h3>
+<div class="stat-grid">
+<div class="stat-chip"><div id="sBest" class="stat-num" style="color:var(--c-best)">0</div><div class="stat-lbl">أفضل</div></div>
+<div class="stat-chip"><div id="sExcel" class="stat-num" style="color:var(--c-excel)">0</div><div class="stat-lbl">ممتازة</div></div>
+<div class="stat-chip"><div id="sGood" class="stat-num" style="color:var(--c-good)">0</div><div class="stat-lbl">جيدة</div></div>
+<div class="stat-chip"><div id="sBook" class="stat-num" style="color:var(--c-book)">0</div><div class="stat-lbl">كتاب</div></div>
+<div class="stat-chip"><div id="sInacc" class="stat-num" style="color:var(--c-inacc)">0</div><div class="stat-lbl">غير دقيقة</div></div>
+<div class="stat-chip"><div id="sMist" class="stat-num" style="color:var(--c-mist)">0</div><div class="stat-lbl">أخطاء</div></div>
+<div class="stat-chip"><div id="sMiss" class="stat-num" style="color:var(--c-miss)">0</div><div class="stat-lbl">فُوِّتت</div></div>
+<div class="stat-chip"><div id="sBlund" class="stat-num" style="color:var(--c-blund)">0</div><div class="stat-lbl">فادحة</div></div>
+</div>
+</div>
+</div>
 
-    function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+<div id="tab-openings" class="tab-panel">
+<div id="openBreadcrumb" class="breadcrumb">الرئيسية</div>
+<div id="openList" class="opening-grid"></div>
+<div class="nav-btns">
+<button class="nav-btn" id="btnBackOpen" onclick="openingBack()" style="display:none">⬅ رجوع</button>
+<button class="nav-btn" onclick="resetOpening()">🔄 إعادة</button>
+</div>
+</div>
 
-    function formatScore(cp) {
-      if (cp === null || cp === undefined) return "+0.0";
-      if (Math.abs(cp) >= 10000) {
-        var mateIn = cp > 0 ? Math.ceil((20000 - cp) / 100) : Math.ceil((20000 + cp) / 100);
-        return (cp > 0 ? "+M" : "-M") + mateIn;
-      }
-      var val = (cp / 100).toFixed(1);
-      return (cp > 0 ? "+" : "") + val;
-    }
+</div>
+</div>
+</div>
 
-    function calcWinChance(cp) {
-      return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
-    }
+<script>
+// ===== PST Tables (Stockfish-inspired) =====
+var PST={p:[0,0,0,0,0,0,0,0,5,10,10,-20,-20,10,10,5,5,-5,-10,0,0,-10,-5,5,0,0,0,20,20,0,0,0,5,5,10,25,25,10,5,5,10,10,20,30,30,20,10,10,50,50,50,50,50,50,50,50,0,0,0,0,0,0,0,0],n:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,5,5,0,-20,-40,-30,5,10,15,15,10,5,-30,-30,0,15,20,20,15,0,-30,-30,5,15,20,20,15,5,-30,-30,0,10,15,15,10,0,-30,-40,-20,0,0,0,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],b:[-20,-10,-10,-10,-10,-10,-10,-20,-10,5,0,0,0,0,5,-10,-10,10,10,10,10,10,10,-10,-10,0,10,10,10,10,0,-10,-10,5,5,10,10,5,5,-10,-10,0,5,10,10,5,0,-10,-10,0,0,0,0,0,0,-10,-20,-10,-10,-10,-10,-10,-10,-20],r:[0,0,0,5,5,0,0,0,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,5,10,10,10,10,10,10,5,0,0,0,0,0,0,0,0],q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,5,0,0,0,0,-10,-10,5,5,5,5,5,0,-10,0,0,5,5,5,5,0,-5,-5,0,5,5,5,5,0,-5,-10,0,5,5,5,5,0,-10,-10,0,0,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],k:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]};
+var PVAL={p:100,n:320,b:330,r:500,q:900,k:20000};
 
-    function estimateElo(accuracyStr) {
-      var acc = parseFloat(accuracyStr);
-      if (isNaN(acc)) return "--";
-      if (acc < 40) return Math.floor(800 + acc * 5);
-      if (acc < 60) return Math.floor(1000 + (acc - 40) * 25);
-      if (acc < 80) return Math.floor(1500 + (acc - 60) * 25);
-      return Math.floor(2000 + (acc - 80) * 30);
-    }
+var board=null,historyMoves=[],analysisResults=[],currentIndex=-1,evalChart=null,rChart=null,allEvals=[],autoTimer=null;
+var openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",openHistory=[];
 
-    function advancedFallbackEval(fen) {
-      var c = new Chess(fen);
-      if (c.in_checkmate()) return { cp: c.turn() === 'w' ? -10000 : 10000, bestMove: null };
-      if (c.in_draw() || c.in_stalemate() || c.in_threefold_repetition()) return { cp: 0, bestMove: null };
-      
-      var val = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
-      var score = 0;
-      var b = c.board();
-      var center = ['d4','d5','e4','e5'];
-      var extended = ['c3','c4','c5','c6','d3','d6','e3','e6','f3','f4','f5','f6'];
-      
-      for (var r = 0; r < 8; r++) {
-        for (var col = 0; col < 8; col++) {
-          var p = b[r][col];
-          if (p) {
-            var v = val[p.type];
-            var sq = 'abcdefgh'[col] + (8 - r);
-            if (center.indexOf(sq) !== -1) v += 25;
-            if (extended.indexOf(sq) !== -1) v += 10;
-            if (p.type === 'p') {
-              var rank = 8 - r;
-              if (p.color === 'w') v += Math.max(0, rank - 2) * 8;
-              else v += Math.max(0, 7 - rank) * 8;
-            }
-            score += (p.color === 'w' ? 1 : -1) * v;
-          }
-        }
-      }
-      var mobility = c.moves().length;
-      score += (c.turn() === 'w' ? mobility : -mobility) * 3;
-      return { cp: score, bestMove: null };
-    }
+function sqIndex(r,c){return r*8+c}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function fmtScore(cp){if(cp==null)return"+0.0";if(Math.abs(cp)>=10000){var m=cp>0?Math.ceil((20000-cp)/100):Math.ceil((20000+cp)/100);return(cp>0?"+M":"-M")+m}var v=(cp/100).toFixed(1);return(cp>0?"+":"")+v}
+function winChance(cp){return 50+50*(2/(1+Math.exp(-.00368208*cp))-1)}
+function estElo(a){var x=parseFloat(a);if(isNaN(x))return"--";if(x<40)return Math.floor(800+x*5);if(x<60)return Math.floor(1000+(x-40)*25);if(x<80)return Math.floor(1500+(x-60)*25);return Math.floor(2000+(x-80)*30)}
 
-    async function fetchAIEval(fen) {
-      try {
-        var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen) + '&multiPv=3');
-        if (!res.ok) return advancedFallbackEval(fen);
-        var data = await res.json();
-        
-        if (data && data.pvs && data.pvs.length > 0) {
-          var pv = data.pvs[0];
-          var cp = 0;
-          if (pv.cp !== undefined) cp = pv.cp;
-          else if (pv.mate !== undefined) cp = pv.mate > 0 ? 10000 + (20 - pv.mate) : -10000 - (20 + pv.mate);
-          var bestMove = pv.moves ? pv.moves.split(' ')[0] : null;
-          return { cp: cp, bestMove: bestMove };
-        }
-        return advancedFallbackEval(fen);
-      } catch (e) {
-        return advancedFallbackEval(fen);
-      }
-    }
+function localEval(fen){
+var c=new Chess(fen);
+if(c.in_checkmate())return{cp:c.turn()==='w'?-10000:10000,best:null};
+if(c.in_draw()||c.in_stalemate())return{cp:0,best:null};
+var sc=0,b=c.board(),phase=0;
+for(var r=0;r<8;r++){for(var col=0;col<8;col++){var p=b[r][col];if(p){var sq=p.color==='w'?sqIndex(r,col):sqIndex(7-r,col);sc+=(p.color==='w'?1:-1)*(PVAL[p.type]+(PST[p.type]?PST[p.type][sq]:0));if(p.type!=='k')phase+=PVAL[p.type]}}}
+var mg=Math.min(1,phase/8000);
+var mob=c.moves().length;sc+=(c.turn()==='w'?1:-1)*mob*3;
+return{cp:Math.round(sc),best:null}
+}
 
-    function initBoard() {
-      var boardEl = document.getElementById('board');
-      if (!boardEl) return;
-      boardEl.innerHTML = '';
-      board = Chessboard('board', {
-        position: 'start',
-        draggable: false,
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        sparePieces: false
-      });
-      setTimeout(function() {
-        if (board && board.resize) board.resize();
-      }, 100);
-    }
+async function fetchEval(fen){
+try{var res=await fetch('https://lichess.org/api/cloud-eval?fen='+encodeURIComponent(fen)+'&multiPv=1');if(!res.ok)return localEval(fen);var d=await res.json();if(d&&d.pvs&&d.pvs[0]){var pv=d.pvs[0],cp=0;if(pv.cp!==undefined)cp=pv.cp;else if(pv.mate!==undefined)cp=pv.mate>0?10000+(20-pv.mate):-10000-(20+pv.mate);var bm=pv.moves?pv.moves.split(' ')[0]:null;return{cp:cp,best:bm}}return localEval(fen)}catch(e){return localEval(fen)}
+}
 
-    $(document).ready(function() {
-      setTimeout(initBoard, 50);
-      $(window).on('resize', function() {
-        if (board && board.resize) board.resize();
-      });
-      $('#btnRun').click(startAnalysis);
-      $('#btnNext').click(function() { renderStep(currentIndex + 1); });
-      $('#btnPrev').click(function() { renderStep(currentIndex - 1); });
-      $(document).on('keydown', function(e) {
-        if (e.target.tagName === 'TEXTAREA') return;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') renderStep(currentIndex + 1);
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') renderStep(currentIndex - 1);
-      });
-    });
+function initBoard(){
+var el=document.getElementById('board');if(!el)return;el.innerHTML='';
+board=Chessboard('board',{position:'start',draggable:false,pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'});
+setTimeout(function(){if(board&&board.resize)board.resize()},100);
+}
 
-    async function startAnalysis() {
-      var pgnText = $('#pgnInput').val().replace(/[٠-٩]/g, function(d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); });
-      var chess = new Chess();
-      if (!chess.load_pgn(pgnText)) {
-        chess.reset();
-        var cleanText = pgnText.replace(/\{[^}]+\}/g, '').replace(/\d+\.(\.\.)?/g, '').replace(/1-0|0-1|1\/2-1\/2|\*|1\/2/g, '');
-        var tokens = cleanText.trim().split(/\s+/);
-        for (var i = 0; i < tokens.length; i++) {
-          var t = tokens[i];
-          if (t && t.length > 1 && !t.includes('.') && !t.match(/^[0-9]+$/)) {
-            try { chess.move(t); } catch(e) {}
-          }
-        }
-      }
-      historyMoves = chess.history({ verbose: true });
-      if (historyMoves.length === 0) {
-        alert("تنبيه: يرجى التأكد من صحة الـ PGN المدخل.");
-        return;
-      }
-      $('#btnRun').prop('disabled', true);
-      $('#statusMsg').show().text('جاري تحليل المباراة...');
-      $('#progressBar').show();
-      $('#progressFill').css('width', '0%');
-      $('#summaryLink').hide();
-      var sim = new Chess();
-      var fens = [sim.fen()];
-      for (var i = 0; i < historyMoves.length; i++) {
-        sim.move(historyMoves[i]);
-        fens.push(sim.fen());
-      }
-      allEvals = [];
-      analysisResults = [];
-      for (var k = 0; k < fens.length; k++) {
-        var pct = Math.round((k / fens.length) * 100);
-        $('#statusMsg').text('تحليل الموقف ' + k + ' من ' + (fens.length - 1) + ' (' + pct + '%)');
-        $('#progressFill').css('width', pct + '%');
-        var result = await fetchAIEval(fens[k]);
-        allEvals.push(result.cp);
-        await sleep(250);
-      }
-      processAnalysis(fens);
-      renderMovesList();
-      drawChart(allEvals);
-      renderStep(-1);
-      $('#progressBar').hide();
-      $('#statusMsg').hide();
-      $('#btnRun').prop('disabled', false);
-      $('#coachText').text('تم التحليل بنجاح! استخدم الأزرار أو الأسهم لمراجعة النقلات.');
-      $('#coachIcon').text('✅');
-      $('#summaryLink').show();
-      saveAnalysis(pgnText);
-    }
+$(document).ready(function(){
+setTimeout(initBoard,50);
+$(window).on('resize',function(){if(board&&board.resize)board.resize()});
+$('#btnRun').click(startAnalysis);
+$('#btnNext').click(function(){renderStep(currentIndex+1)});
+$('#btnPrev').click(function(){renderStep(currentIndex-1)});
+$('#btnAuto').click(toggleAuto);
+$('#btnReport').click(function(){openModal('report')});
+$('#btnOpenings').click(function(){openModal('openings');loadOpenings()});
+$(document).on('keydown',function(e){if(e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight'||e.key==='ArrowDown')renderStep(currentIndex+1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')renderStep(currentIndex-1)});
+});
 
-    function processAnalysis(fens) {
-      var wDrops = [], bDrops = [];
-      analysisResults = [];
-      for (var i = 0; i < historyMoves.length; i++) {
-        var m = historyMoves[i];
-        var side = m.color;
-        var beforeCp = allEvals[i];
-        var afterCp = allEvals[i + 1];
-        var loss = 0;
-        if (side === 'w') loss = Math.max(0, (beforeCp - afterCp) / 100);
-        else loss = Math.max(0, (afterCp - beforeCp) / 100);
-        var prevWin = calcWinChance(side === 'w' ? beforeCp : -beforeCp);
-        var curWin = calcWinChance(side === 'w' ? afterCp : -afterCp);
-        var winDrop = Math.max(0, prevWin - curWin);
-        var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على توازن الموقف.' };
-        if (i < 8) {
-          badge = { name: 'كتاب', icon: '📖', bg: 'bg-book', msg: 'نقلة افتتاحية معروفة في النظريات.' };
-        } else if (winDrop > 25 || loss > 4.0) {
-          badge = { name: 'خطأ فادح', icon: '??', bg: 'bg-blunder', msg: 'كارثة! نقلة فادحة تقلب موازين المباراة بشكل كبير.' };
-        } else if (winDrop > 15 || loss > 2.5) {
-          badge = { name: 'أضاعت فرصة', icon: '✖', bg: 'bg-miss', msg: 'أضعت فرصة ذهبية للحصول على أفضلية حاسمة.' };
-        } else if (winDrop > 8 || loss > 1.5) {
-          badge = { name: 'خطأ', icon: '?', bg: 'bg-mistake', msg: 'خطأ تكتيكي كلفك أفضلية أو فرصة مهمة.' };
-        } else if (winDrop > 4 || loss > 0.7) {
-          badge = { name: 'غير دقيقة', icon: '?!', bg: 'bg-inaccuracy', msg: 'نقلة غير دقيقة، كان من الأفضل التفكير بخيار آخر.' };
-        } else if (loss <= 0.02) {
-          badge = { name: 'الأفضل', icon: '★', bg: 'bg-best', msg: 'أفضل خيار متاح على الرقعة! نقلة مثالية.' };
-        } else if (loss <= 0.1) {
-          badge = { name: 'ممتازة', icon: '✓', bg: 'bg-excellent', msg: 'نقلة قوية جداً قريبة من الأفضل الممكن.' };
-        } else if (loss <= 0.3) {
-          badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على توازن اللعب.' };
-        }
-        if (side === 'w') wDrops.push(winDrop); else bDrops.push(winDrop);
-        analysisResults.push({
-          eval: afterCp,
-          evalStr: formatScore(afterCp),
-          san: m.san,
-          to: m.to,
-          from: m.from,
-          badge: badge,
-          loss: loss,
-          winDrop: winDrop
-        });
-      }
-      function getCAPSAccuracy(drops) {
-        if (!drops.length) return "0.0%";
-        var total = 0;
-        drops.forEach(function(d) {
-          var acc = 103.1668 * Math.exp(-0.04354 * d);
-          total += Math.min(100, Math.max(0, acc));
-        });
-        return (total / drops.length).toFixed(1) + "%";
-      }
-      var wAcc = getCAPSAccuracy(wDrops);
-      var bAcc = getCAPSAccuracy(bDrops);
-      $('#whiteAcc').text(wAcc);
-      $('#blackAcc').text(bAcc);
-      $('#whiteElo').text(estimateElo(wAcc));
-      $('#blackElo').text(estimateElo(bAcc));
-    }
+async function startAnalysis(){
+var pgn=$('#pgnIn').val().replace(/[٠-٩]/g,function(d){return"٠١٢٣٤٥٦٧٨٩".indexOf(d)});
+var chess=new Chess();
+if(!chess.load_pgn(pgn)){chess.reset();var clean=pgn.replace(/\{[^}]+\}/g,'').replace(/\d+\.(\.\.)?/g,'').replace(/1-0|0-1|1\/2-1\/2|\*|1\/2/g,'');var tok=clean.trim().split(/\s+/);for(var i=0;i<tok.length;i++){var t=tok[i];if(t&&t.length>1&&!t.includes('.')&&!t.match(/^[0-9]+$/)){try{chess.move(t)}catch(e){}}}}
+historyMoves=chess.history({verbose:true});
+if(historyMoves.length===0){alert("تنبيه: يرجى التأكد من صحة الـ PGN.");return}
+$('#btnRun').prop('disabled',true);$('#status').show().text('جاري التحليل...');$('#pBar').show();$('#pFill').css('width','0%');
+var sim=new Chess(),fens=[sim.fen()];
+for(var i=0;i<historyMoves.length;i++){sim.move(historyMoves[i]);fens.push(sim.fen())}
+allEvals=[];analysisResults=[];
+for(var k=0;k<fens.length;k++){var pct=Math.round((k/fens.length)*100);$('#status').text('تحليل '+k+' من '+(fens.length-1)+' ('+pct+'%)');$('#pFill').css('width',pct+'%');var r=await fetchEval(fens[k]);allEvals.push(r.cp);await sleep(200)}
+processAnalysis(fens);renderMoves();drawChart(allEvals);renderStep(-1);
+$('#pBar').hide();$('#status').hide();$('#btnRun').prop('disabled',false);$('#cText').text('تم التحليل! استخدم الأزرار أو الأسهم.');$('#cIcon').text('✅');
+saveData(pgn);
+}
 
-    function renderMovesList() {
-      var box = $('#movesBar').empty();
-      historyMoves.forEach(function(m, i) {
-        var num = Math.floor(i / 2) + 1;
-        var prefix = (i % 2 === 0) ? num + '. ' : '';
-        box.append('<button id="mbtn-' + i + '" class="move-btn" onclick="renderStep(' + i + ')">' + prefix + m.san + '</button>');
-      });
-    }
+function processAnalysis(fens){
+var wD=[],bD=[];analysisResults=[];
+for(var i=0;i<historyMoves.length;i++){
+var m=historyMoves[i],side=m.color,before=allEvals[i],after=allEvals[i+1];
+var loss=side==='w'?Math.max(0,(before-after)/100):Math.max(0,(after-before)/100);
+var pw=winChance(side==='w'?before:-before),cw=winChance(side==='w'?after:-after),wd=Math.max(0,pw-cw);
+var badge={name:'جيدة',icon:'✓',bg:'bg-good',msg:'نقلة جيدة تحافظ على التوازن.'};
+if(i<8){badge={name:'كتاب',icon:'📖',bg:'bg-book',msg:'نقلة افتتاحية معروفة.'}}
+else if(wd>25||loss>4){badge={name:'خطأ فادح',icon:'??',bg:'bg-blund',msg:'كارثة! نقلة فادحة تقلب المباراة.'}}
+else if(wd>15||loss>2.5){badge={name:'أضاعت فرصة',icon:'✖',bg:'bg-miss',msg:'أضعت فرصة ذهبية للأفضلية.'}}
+else if(wd>8||loss>1.5){badge={name:'خطأ',icon:'?',bg:'bg-mist',msg:'خطأ تكتيكي كلفك أفضلية.'}}
+else if(wd>4||loss>0.7){badge={name:'غير دقيقة',icon:'?!',bg:'bg-inacc',msg:'نقلة غير دقيقة، فكر بخيار آخر.'}}
+else if(loss<=0.02){badge={name:'الأفضل',icon:'★',bg:'bg-best',msg:'أفضل خيار متاح! نقلة مثالية.'}}
+else if(loss<=0.1){badge={name:'ممتازة',icon:'✓',bg:'bg-excel',msg:'نقلة قوية جداً قريبة من الأفضل.'}}
+else if(loss<=0.3){badge={name:'جيدة',icon:'✓',bg:'bg-good',msg:'نقلة جيدة تحافظ على التوازن.'}}
+if(side==='w')wD.push(wd);else bD.push(wd);
+analysisResults.push({eval:after,evalStr:fmtScore(after),san:m.san,to:m.to,badge:badge,loss:loss})
+}
+function caps(drops){if(!drops.length)return"0.0%";var t=0;drops.forEach(function(d){t+=Math.min(100,Math.max(0,103.1668*Math.exp(-0.04354*d)))});return(t/drops.length).toFixed(1)+"%"}
+var wa=caps(wD),ba=caps(bD);$('#wAcc').text(wa);$('#bAcc').text(ba);$('#wElo').text(estElo(wa));$('#bElo').text(estElo(ba));
+}
 
-    function renderStep(idx) {
-      if (idx < -1 || idx >= historyMoves.length) return;
-      var c = new Chess();
-      for (var i = 0; i <= idx; i++) c.move(historyMoves[i]);
-      currentIndex = idx;
-      if (board && board.position) board.position(c.fen());
-      $('.square-badge').remove();
-      if (idx >= 0) {
-        var item = analysisResults[idx];
-        var ev = item.eval;
-        var scoreTxt = item.evalStr;
-        $('#scorePill').text(scoreTxt);
-        $('#moveTitle').text(item.san + ' - ' + item.badge.name);
-        $('#moveSub').text(item.badge.msg);
-        $('#coachText').text(item.badge.msg);
-        $('#coachIcon').text(item.badge.icon);
-        $('#bestMoveBox').show();
-        $('#bestMoveText').text('غير متاح');
-        var sq = $('#board').find('.square-' + item.to);
-        if (sq.length) {
-          sq.append('<div class="square-badge ' + item.badge.bg + '">' + item.badge.icon + '</div>');
-        }
-        var fillH = 50;
-        if (Math.abs(ev) >= 10000) fillH = ev > 0 ? 95 : 5;
-        else fillH = Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
-        $('#evalFill').css('height', fillH + '%');
-        if (evalChart) {
-          evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
-          evalChart.update();
-        }
-      } else {
-        $('#scorePill').text('+0.0');
-        $('#moveTitle').text('بداية المباراة');
-        $('#moveSub').text('اضغط "التالي" أو استخدم سهم اليمين لعرض النقلات');
-        $('#evalFill').css('height', '50%');
-        $('#coachText').text('المباراة تبدأ من هنا. دعنا نرى ما حدث!');
-        $('#coachIcon').text('🦉');
-        $('#bestMoveBox').hide();
-      }
-      $('.move-btn').removeClass('active');
-      if (idx >= 0) $('#mbtn-' + idx).addClass('active');
-    }
+function renderMoves(){
+var box=$('#movesBar').empty();
+historyMoves.forEach(function(m,i){var num=Math.floor(i/2)+1;var pre=(i%2===0)?num+'. ':'';box.append('<button id="mb-'+i+'" class="move-btn" onclick="renderStep('+i+')">'+pre+m.san+'</button>')})
+}
 
-    function drawChart(evals) {
-      if (evalChart) evalChart.destroy();
-      var ctx = document.getElementById('evalChart').getContext('2d');
-      var dataPoints = evals.map(function(e) {
-        if (Math.abs(e) >= 10000) return e > 0 ? 10 : -10;
-        return Math.max(-10, Math.min(10, e / 100));
-      });
-      var labels = evals.map(function(_, i) { return i; });
-      evalChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataPoints,
-            borderColor: '#38bdf8',
-            backgroundColor: function(ctx) {
-              var chart = ctx.chart;
-              var area = chart.chartArea;
-              if (!area) return null;
-              var ctx2 = chart.ctx;
-              var gradient = ctx2.createLinearGradient(0, area.top, 0, area.bottom);
-              gradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
-              gradient.addColorStop(0.5, 'rgba(56, 189, 248, 0.05)');
-              gradient.addColorStop(1, 'rgba(239, 68, 68, 0.3)');
-              return gradient;
-            },
-            borderWidth: 2,
-            fill: true,
-            pointRadius: 2,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#38bdf8',
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          scales: { x: { display: false }, y: { display: false, min: -10, max: 10 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              enabled: true,
-              backgroundColor: '#1a1917',
-              titleColor: '#fff',
-              bodyColor: '#a1a1aa',
-              borderColor: '#2e2c29',
-              borderWidth: 1,
-              callbacks: {
-                title: function() { return ''; },
-                label: function(context) {
-                  var idx = context.dataIndex;
-                  if (idx === 0) return 'بداية: +0.0';
-                  if (analysisResults[idx - 1]) return analysisResults[idx - 1].san + ': ' + analysisResults[idx - 1].evalStr;
-                  return '';
-                }
-              }
-            }
-          },
-          onClick: function(e, elements) {
-            if (elements.length > 0) {
-              var idx = elements[0].index - 1;
-              if (idx >= -1 && idx < historyMoves.length) renderStep(idx);
-            }
-          }
-        }
-      });
-    }
+function renderStep(idx){
+if(idx<-1||idx>=historyMoves.length)return;
+var c=new Chess();for(var i=0;i<=idx;i++)c.move(historyMoves[i]);
+currentIndex=idx;if(board&&board.position)board.position(c.fen());$('.badge').remove();
+if(idx>=0){
+var it=analysisResults[idx],ev=it.eval;
+$('#scorePill').text(it.evalStr);$('#mTitle').text(it.san+' - '+it.badge.name);$('#mSub').text(it.badge.msg);$('#cText').text(it.badge.msg);$('#cIcon').text(it.badge.icon);$('#bestBox').show();$('#bestTxt').text('غير متاح');
+var sq=$('#board').find('.square-'+it.to);if(sq.length)sq.append('<div class="badge '+it.badge.bg+'">'+it.badge.icon+'</div>');
+var fh=Math.abs(ev)>=10000?(ev>0?95:5):Math.max(5,Math.min(95,50+(ev/100)*4));$('#eFill').css('height',fh+'%');
+if(evalChart){evalChart.setActiveElements([{datasetIndex:0,index:idx+1}]);evalChart.update()}
+}else{
+$('#scorePill').text('+0.0');$('#mTitle').text('بداية المباراة');$('#mSub').text('اضغط التالي أو سهم اليمين');$('#eFill').css('height','50%');$('#cText').text('المباراة تبدأ من هنا.');$('#cIcon').text('🦉');$('#bestBox').hide()
+}
+$('.move-btn').removeClass('active');if(idx>=0)$('#mb-'+idx).addClass('active');
+}
 
-    function saveAnalysis(pgn) {
-      var openingName = "مباراة شطرنج";
-      var ecoCode = "A00";
-      var matchOpening = pgn.match(/\[Opening "([^"]+)"\]/);
-      var matchEco = pgn.match(/\[ECO "([^"]+)"\]/);
-      if (matchOpening) openingName = matchOpening[1];
-      if (matchEco) ecoCode = matchEco[1];
-      var moveStats = { best: 0, excellent: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, miss: 0, blunder: 0 };
-      analysisResults.forEach(function(item) {
-        var name = item.badge.name;
-        if (name === 'الأفضل') moveStats.best++;
-        else if (name === 'ممتازة') moveStats.excellent++;
-        else if (name === 'جيدة') moveStats.good++;
-        else if (name === 'كتاب') moveStats.book++;
-        else if (name === 'غير دقيقة') moveStats.inaccuracy++;
-        else if (name === 'خطأ') moveStats.mistake++;
-        else if (name === 'أضاعت فرصة') moveStats.miss++;
-        else if (name === 'خطأ فادح') moveStats.blunder++;
-      });
-      var payload = {
-        evals: allEvals,
-        opening: { name: openingName, code: ecoCode },
-        whiteAcc: $('#whiteAcc').text(),
-        blackAcc: $('#blackAcc').text(),
-        whiteElo: $('#whiteElo').text(),
-        blackElo: $('#blackElo').text(),
-        moveStats: moveStats
-      };
-      localStorage.setItem('chessAnalysisData', JSON.stringify(payload));
-    }
-  </script>
+function drawChart(evals){
+if(evalChart)evalChart.destroy();
+var ctx=document.getElementById('evalChart').getContext('2d');
+var pts=evals.map(function(e){return Math.abs(e)>=10000?(e>0?10:-10):Math.max(-10,Math.min(10,e/100))});
+var lbls=evals.map(function(_,i){return i});
+evalChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:[{data:pts,borderColor:'#38bdf8',backgroundColor:function(ctx){var ch=ctx.chart,ar=ch.chartArea;if(!ar)return null;var c=ch.ctx,g=c.createLinearGradient(0,ar.top,0,ar.bottom);g.addColorStop(0,'rgba(56,189,248,0.3)');g.addColorStop(0.5,'rgba(56,189,248,0.05)');g.addColorStop(1,'rgba(239,68,68,0.3)');return g},borderWidth:2,fill:true,pointRadius:2,pointHoverRadius:6,pointBackgroundColor:'#38bdf8',tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{x:{display:false},y:{display:false,min:-10,max:10}},plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:'#1a1917',titleColor:'#fff',bodyColor:'#a1a1aa',borderColor:'#2e2c29',borderWidth:1,callbacks:{title:function(){return''},label:function(ctx){var i=ctx.dataIndex;if(i===0)return'بداية: +0.0';if(analysisResults[i-1])return analysisResults[i-1].san+': '+analysisResults[i-1].evalStr;return''}}}},onClick:function(e,els){if(els.length){var i=els[0].index-1;if(i>=-1&&i<historyMoves.length)renderStep(i)}}});
+}
+
+function toggleAuto(){
+if(autoTimer){clearInterval(autoTimer);autoTimer=null;$('#btnAuto').text('▶ تشغيل')}else{$('#btnAuto').text('⏸ إيقاف');autoTimer=setInterval(function(){if(currentIndex<historyMoves.length-1)renderStep(currentIndex+1);else toggleAuto()},1000)}
+}
+
+function saveData(pgn){
+var on="مباراة شطرنج",ec="A00";
+var mo=pgn.match(/\[Opening "([^"]+)"\]/);var me=pgn.match(/\[ECO "([^"]+)"\]/);
+if(mo)on=mo[1];if(me)ec=me[1];
+var ms={best:0,excel:0,good:0,book:0,inacc:0,mist:0,miss:0,blund:0};
+analysisResults.forEach(function(it){var n=it.badge.name;if(n==='الأفضل')ms.best++;else if(n==='ممتازة')ms.excel++;else if(n==='جيدة')ms.good++;else if(n==='كتاب')ms.book++;else if(n==='غير دقيقة')ms.inacc++;else if(n==='خطأ')ms.mist++;else if(n==='أضاعت فرصة')ms.miss++;else if(n==='خطأ فادح')ms.blund++});
+var pl={evals:allEvals,opening:{name:on,code:ec},whiteAcc:$('#wAcc').text(),blackAcc:$('#bAcc').text(),whiteElo:$('#wElo').text(),blackElo:$('#bElo').text(),moveStats:ms};
+localStorage.setItem('chessAnalysisData',JSON.stringify(pl));
+}
+
+// ===== Modal =====
+function openModal(tab){
+document.getElementById('modal').style.display='block';document.body.style.overflow='hidden';
+if(tab==='report'){document.getElementById('modalTitle').textContent='📊 تقرير المباراة';switchTab('report');fillReport()}
+if(tab==='openings'){document.getElementById('modalTitle').textContent='📖 مستكشف الافتتاحيات';switchTab('openings')}
+}
+function closeModal(){document.getElementById('modal').style.display='none';document.body.style.overflow=''}
+function switchTab(t){
+document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
+event.target.classList.add('active');document.getElementById('tab-'+t).classList.add('active')
+}
+
+function fillReport(){
+var d=localStorage.getItem('chessAnalysisData');
+var ev=[0,0.2,-0.1,0.5],oi={name:'لا توجد بيانات',code:'قم بالتحليل أولاً'},wa='--',ba='--',we='--',be='--',ms={best:0,excel:0,good:0,book:0,inacc:0,mist:0,miss:0,blund:0};
+if(d){try{var p=JSON.parse(d);if(p.evals)ev=p.evals;if(p.opening)oi=p.opening;if(p.whiteAcc)wa=p.whiteAcc;if(p.blackAcc)ba=p.blackAcc;if(p.whiteElo)we=p.whiteElo;if(p.blackElo)be=p.blackElo;if(p.moveStats)ms=p.moveStats}catch(e){}}
+document.getElementById('rOpenName').textContent=oi.name;document.getElementById('rOpenCode').textContent=oi.code;
+document.getElementById('rWAcc').textContent=wa;document.getElementById('rBAcc').textContent=ba;
+document.getElementById('rWElo').textContent=we;document.getElementById('rBElo').textContent=be;
+document.getElementById('sBest').textContent=ms.best||0;document.getElementById('sExcel').textContent=ms.excel||0;document.getElementById('sGood').textContent=ms.good||0;document.getElementById('sBook').textContent=ms.book||0;document.getElementById('sInacc').textContent=ms.inacc||0;document.getElementById('sMist').textContent=ms.mist||0;document.getElementById('sMiss').textContent=ms.miss||0;document.getElementById('sBlund').textContent=ms.blund||0;
+if(rChart)rChart.destroy();
+var ctx=document.getElementById('rChart').getContext('2d');
+var pts=ev.map(function(e){return Math.abs(e)>=10000?(e>0?10:-10):Math.max(-10,Math.min(10,e/100))});
+var lbls=ev.map(function(_,i){return'ن '+(i+1)});
+rChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:[{label:'تقييم',data:pts,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,0.15)',fill:true,tension:0.3,pointRadius:ev.length>30?0:3,pointHoverRadius:6,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var i=ctx.dataIndex;var raw=ev[i];return'تقييم: '+fmtScore(raw)}}}},scales:{y:{grid:{color:'#2e2c29'},ticks:{color:'#a1a1aa',font:{size:10}},min:-10,max:10},x:{grid:{display:false},ticks:{color:'#a1a1aa',font:{size:9},maxTicksLimit:10}}}});
+}
+
+// ===== Opening Explorer =====
+async function loadOpenings(){
+var list=document.getElementById('openList');list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">جاري التحميل...</div>';
+try{var res=await fetch('https://explorer.lichess.ovh/lichess?fen='+encodeURIComponent(openFen)+'&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200&recentGames=0');var data=await res.json();renderOpenings(data)}catch(e){list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">خطأ في الاتصال بـ Lichess</div>'}
+}
+
+function renderOpenings(data){
+var list=document.getElementById('openList');list.innerHTML='';
+if(data.opening){var badge=document.createElement('div');badge.style.cssText='background:var(--green);color:#000;padding:8px 12px;border-radius:6px;text-align:center;font-weight:700;margin-bottom:8px';badge.textContent='📖 '+data.opening.name+' ('+data.opening.eco+')';list.appendChild(badge)}
+var moves=data.moves||[];
+if(moves.length===0){list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">لا توجد نقلات شائعة لهذا الموقف</div>';return}
+var total=moves.reduce(function(s,m){return s+m.white+m.draws+m.black},0);
+moves.forEach(function(m){
+var row=document.createElement('div');row.className='opening-row';
+var games=m.white+m.draws+m.black;
+var pct=Math.round((games/total)*100);
+var wPct=total>0?Math.round((m.white/games)*100):0;
+var dPct=total>0?Math.round((m.draws/games)*100):0;
+var bPct=total>0?Math.round((m.black/games)*100):0;
+row.innerHTML='<div><div class="opening-san">'+m.san+'</div><div class="opening-stats">'+games.toLocaleString()+' لعبة | أبيض '+wPct+'% | تعادل '+dPct+'% | أسود '+bPct+'%</div><div class="opening-bar"><div class="opening-bar-fill" style="width:'+pct+'%"></div></div></div><div style="text-align:right"><div style="font-size:16px;font-weight:900">'+pct+'%</div><div style="font-size:11px;color:var(--dim)">شيوعاً</div></div>';
+row.onclick=function(){playOpeningMove(m.san,m.uci)};
+list.appendChild(row)
+});
+document.getElementById('btnBackOpen').style.display=openHistory.length?'block':'none';
+}
+
+function playOpeningMove(san,uci){
+var c=new Chess(openFen);c.move(san);openFen=c.fen();openHistory.push({fen:openFen,san:san});
+updateBreadcrumb();loadOpenings();
+}
+
+function openingBack(){
+if(openHistory.length===0)return;openHistory.pop();
+if(openHistory.length===0){openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}else{openFen=openHistory[openHistory.length-1].fen}
+updateBreadcrumb();loadOpenings();
+}
+
+function resetOpening(){
+openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";openHistory=[];
+updateBreadcrumb();loadOpenings();
+}
+
+function updateBreadcrumb(){
+var bc=document.getElementById('openBreadcrumb');
+if(openHistory.length===0){bc.innerHTML='<span onclick="resetOpening()">الرئيسية</span>';return}
+var html='<span onclick="resetOpening()">الرئيسية</span>';
+openHistory.forEach(function(h,i){html+=' › <span onclick="jumpOpening('+i+')">'+h.san+'</span>'});
+bc.innerHTML=html;
+}
+
+function jumpOpening(idx){
+while(openHistory.length>idx+1)openHistory.pop();
+openFen=openHistory.length?openHistory[openHistory.length-1].fen:"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+updateBreadcrumb();loadOpenings();
+}
+
+// Close modal on outside click
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+</script>
 </body>
-</html>
+</html>'''
