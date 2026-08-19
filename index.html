@@ -420,3 +420,9 @@ document.getElementById('modal').addEventListener('click',function(e){if(e.targe
 </script>
 </body>
 </html>'''
+
+with open('/mnt/agents/output/index.html','w',encoding='utf-8') as f:
+    f.write(html)
+
+print("✅ تم بناء index.html الكامل!")
+print(f"📊 الحجم: {len(html):,} حرف")
