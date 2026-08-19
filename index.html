@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,12 +10,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stockfish/src/stockfish.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish.js"></script>
 
 <style>
 :root{--bg:#0f0e0d;--card:#1a1917;--border:#2e2c29;--green:#81b64c;--green-h:#6fa33f;--blue:#38bdf8;--text:#fff;--dim:#a1a1aa;--c-best:#96bc4b;--c-excel:#85a94e;--c-good:#a8a8a8;--c-book:#d5a47d;--c-inacc:#f0c15c;--c-mist:#e6912c;--c-miss:#fa6555;--c-blund:#ca3431}
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:10px;min-height:100vh}
+body{background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:10px;min-height:100vh;direction:rtl}
 .app-card{width:100%;max-width:460px;display:flex;flex-direction:column;gap:10px}
 .header-tag{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:10px;padding:10px;text-align:center;font-weight:800;color:var(--blue);font-size:15px}
 .acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -27,13 +28,13 @@ body{background:var(--bg);color:var(--text);display:flex;justify-content:center;
 .banner{background:#24221f;border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px}
 .pill{background:#fff;color:#000;font-weight:900;padding:5px 12px;border-radius:6px;font-size:15px;flex-shrink:0}
 .best-pill{background:var(--green);color:#000;font-weight:700;padding:3px 8px;border-radius:4px;font-size:11px;margin-top:4px;display:inline-block}
-.board-wrap{display:flex;gap:8px;width:100%;min-height:200px}
+.board-wrap{display:flex;gap:8px;width:100%;min-height:200px;direction:ltr}
 .eval-bar{width:16px;background:#262421;border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;flex-shrink:0}
 .eval-fill{width:100%;height:50%;background:#fff;transition:height .4s ease}
 .board-box{flex:1;position:relative;min-width:0;width:100%}
 #board{width:100%!important;aspect-ratio:1/1;position:relative}
 #board .square-55d63{position:relative!important}
-.moves-bar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;overflow-x:auto;white-space:nowrap;display:flex;gap:6px}
+.moves-bar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;overflow-x:auto;white-space:nowrap;display:flex;gap:6px;direction:rtl}
 .move-btn{background:#2b2823;border:1px solid var(--border);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0}
 .move-btn:hover{background:#383631}.move-btn.active{background:var(--green);color:#000;font-weight:700;border-color:var(--green)}
 .ctrl-row{display:flex;gap:8px}
@@ -205,6 +206,7 @@ textarea:focus{outline:none;border-color:var(--green)}
 </div>
 
 <script>
+// ==================== STOCKFISH ENGINE ====================
 var engine = null, engineReady = false, engineQueue = [], currentResolve = null, engineInfo = {};
 
 function initEngine() {
@@ -273,6 +275,7 @@ function getStockfishBestMove(fen) {
     });
 }
 
+// ==================== PST EVAL (Fallback) ====================
 var PST = {
     p: [0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10, 5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5, 5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0],
     n: [-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30, -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30, -40,-20,0,0,0,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50],
@@ -326,19 +329,10 @@ function localEval(fen) {
 }
 
 async function fetchEval(fen) {
-    if (engineReady) {
-        try {
-            var sf = await getStockfishBestMove(fen);
-            if (sf && sf.bestMove) {
-                var cp = sf.cp !== null ? sf.cp : (sf.mate !== null ? (sf.mate > 0 ? 10000 + (20 - sf.mate) : -10000 - (20 + sf.mate)) : 0);
-                return { cp: cp, best: sf.bestMove };
-            }
-        } catch (e) {}
-    }
-
+    // 1. Try Lichess Cloud Eval first (fast, accurate, CORS-enabled)
     try {
         var controller = new AbortController();
-        var timeoutId = setTimeout(function() { controller.abort(); }, 3000);
+        var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
         var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen) + '&multiPv=1', {
             signal: controller.signal,
             headers: { 'Accept': 'application/json' }
@@ -356,9 +350,22 @@ async function fetchEval(fen) {
         }
     } catch (e) {}
 
+    // 2. Try Stockfish local engine
+    if (engineReady) {
+        try {
+            var sf = await getStockfishBestMove(fen);
+            if (sf && sf.bestMove) {
+                var cp = sf.cp !== null ? sf.cp : (sf.mate !== null ? (sf.mate > 0 ? 10000 + (20 - sf.mate) : -10000 - (20 + sf.mate)) : 0);
+                return { cp: cp, best: sf.bestMove };
+            }
+        } catch (e) {}
+    }
+
+    // 3. Fallback to local eval
     return localEval(fen);
 }
 
+// ==================== APP STATE ====================
 var board = null, historyMoves = [], analysisResults = [], currentIndex = -1, evalChart = null, rChart = null, allEvals = [], autoTimer = null;
 var openFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", openHistory = [];
 
@@ -508,9 +515,17 @@ function processAnalysis(fens) {
     for (var i = 0; i < historyMoves.length; i++) {
         var m = historyMoves[i], side = m.color;
         var before = allEvals[i], after = allEvals[i + 1];
-        var loss = side === 'w' ? Math.max(0, (before - after) / 100) : Math.max(0, (after - before) / 100);
-        var pw = winChance(side === 'w' ? before : -before);
-        var cw = winChance(side === 'w' ? after : -after);
+
+        // Correct loss calculation: compare eval before with eval after from current player's perspective
+        // before = eval from current player's perspective (side to move)
+        // after = eval from opponent's perspective (new side to move)
+        // Ideal: after should be approximately -before (advantage flips)
+        // Loss = how much worse the played move is compared to ideal
+        var loss = Math.max(0, (before + after) / 100);
+
+        // Win chance drop
+        var pw = winChance(before);
+        var cw = winChance(-after); // convert to current player's perspective
         var wd = Math.max(0, pw - cw);
 
         var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
@@ -577,8 +592,13 @@ function renderStep(idx) {
         $('#bestBox').show();
         $('#bestTxt').text('غير متاح');
 
-        var sq = $('#board').find('.square-' + it.to);
-        if (sq.length) sq.append('<div class="badge ' + it.badge.bg + '">' + it.badge.icon + '</div>');
+        // Add badge after board render completes
+        setTimeout(function() {
+            var sq = $('#board').find('.square-' + it.to);
+            if (sq.length) {
+                sq.append('<div class="badge ' + it.badge.bg + '">' + it.badge.icon + '</div>');
+            }
+        }, 50);
 
         var fh = Math.abs(ev) >= 10000 ? (ev > 0 ? 95 : 5) : Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
         $('#eFill').css('height', fh + '%');
@@ -824,15 +844,27 @@ function fillReport() {
     });
 }
 
+// ==================== OPENING EXPLORER (with CORS proxy) ====================
 async function loadOpenings() {
     var list = document.getElementById('openList');
-    list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">جاري التحميل من Lichess...</div>';
+    list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">جاري التحميل...</div>';
+
+    var targetUrl = 'https://explorer.lichess.ovh/lichess?fen=' + encodeURIComponent(openFen) + '&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200&recentGames=0';
+    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+
     try {
-        var res = await fetch('https://explorer.lichess.ovh/lichess?fen=' + encodeURIComponent(openFen) + '&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200&recentGames=0');
+        var res = await fetch(proxyUrl, { timeout: 8000 });
         var data = await res.json();
         renderOpenings(data);
     } catch (e) {
-        list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">⚠️ خطأ في الاتصال. تأكد من الإنترنت.</div>';
+        // Fallback: try direct (might work in some environments)
+        try {
+            var res2 = await fetch(targetUrl);
+            var data2 = await res2.json();
+            renderOpenings(data2);
+        } catch (e2) {
+            list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">⚠️ تعذر الاتصال بقاعدة بيانات Lichess.<br><span style="font-size:11px">جرب تشغيل الصفحة بمتصفح مختلف أو تحقق من الإنترنت.</span></div>';
+        }
     }
 }
 
