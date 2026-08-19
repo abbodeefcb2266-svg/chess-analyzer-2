@@ -9,8 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- محرك Stockfish الحقيقي -->
-<script src="https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stockfish/src/stockfish.js"></script>
 
 <style>
 :root{--bg:#0f0e0d;--card:#1a1917;--border:#2e2c29;--green:#81b64c;--green-h:#6fa33f;--blue:#38bdf8;--text:#fff;--dim:#a1a1aa;--c-best:#96bc4b;--c-excel:#85a94e;--c-good:#a8a8a8;--c-book:#d5a47d;--c-inacc:#f0c15c;--c-mist:#e6912c;--c-miss:#fa6555;--c-blund:#ca3431}
@@ -31,8 +30,9 @@ body{background:var(--bg);color:var(--text);display:flex;justify-content:center;
 .board-wrap{display:flex;gap:8px;width:100%;min-height:200px}
 .eval-bar{width:16px;background:#262421;border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;flex-shrink:0}
 .eval-fill{width:100%;height:50%;background:#fff;transition:height .4s ease}
-.board-box{flex:1;position:relative;min-width:0}
-#board{width:100%!important;border-radius:6px;overflow:hidden}
+.board-box{flex:1;position:relative;min-width:0;width:100%}
+#board{width:100%!important;aspect-ratio:1/1;position:relative}
+#board .square-55d63{position:relative!important}
 .moves-bar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;overflow-x:auto;white-space:nowrap;display:flex;gap:6px}
 .move-btn{background:#2b2823;border:1px solid var(--border);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0}
 .move-btn:hover{background:#383631}.move-btn.active{background:var(--green);color:#000;font-weight:700;border-color:var(--green)}
@@ -43,16 +43,14 @@ body{background:var(--bg);color:var(--text);display:flex;justify-content:center;
 textarea{width:100%;height:70px;background:#151413;border:1px solid var(--border);color:#fff;border-radius:8px;padding:10px;font-size:12px;resize:none}
 textarea:focus{outline:none;border-color:var(--green)}
 .btn-run{background:linear-gradient(135deg,#81b64c,#659338);border:none;color:#000;padding:14px;border-radius:8px;font-weight:800;cursor:pointer;width:100%;font-size:15px;box-shadow:0 4px 12px rgba(129,182,76,.2)}
-.btn-run:hover{transform:translateY(-1px)}.btn-run:disabled{opacity:.6;transform:none}
+.btn-run:hover{transform:translateY(-1px)}.btn-run:disabled{opacity:.6;transform:none;cursor:not-allowed}
 .status{text-align:center;font-size:13px;color:var(--blue);font-weight:700;display:none}
 .prog-bar{width:100%;height:4px;background:#2e2c29;border-radius:2px;overflow:hidden;display:none}
 .prog-fill{height:100%;background:var(--green);width:0%;transition:width .3s}
-.badge{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;z-index:99;border:2px solid #fff;box-shadow:0 4px 8px rgba(0,0,0,.6)}
+.badge{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;z-index:99;border:2px solid #fff;box-shadow:0 4px 8px rgba(0,0,0,.6);pointer-events:none}
 .bg-best{background:var(--c-best)}.bg-excel{background:var(--c-excel)}.bg-good{background:var(--c-good)}.bg-book{background:var(--c-book)}
 .bg-inacc{background:var(--c-inacc)}.bg-mist{background:var(--c-mist)}.bg-miss{background:var(--c-miss)}.bg-blund{background:var(--c-blund)}
 .coach{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center}
-
-/* Modal */
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:999;overflow-y:auto;padding:10px}
 .modal-content{background:var(--bg);max-width:480px;margin:0 auto;border-radius:12px;border:1px solid var(--border);overflow:hidden;animation:fadeIn .3s}
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -80,6 +78,7 @@ textarea:focus{outline:none;border-color:var(--green)}
 .breadcrumb span{cursor:pointer;color:var(--blue);padding:2px 6px;border-radius:4px}
 .breadcrumb span:hover{background:rgba(56,189,248,.1);text-decoration:underline}
 .opening-name-box{background:linear-gradient(90deg,var(--green),#659338);color:#000;padding:10px;border-radius:8px;font-weight:800;text-align:center;margin-bottom:8px;font-size:14px}
+.error-box{background:rgba(202,52,49,.15);border:1px solid var(--c-blund);color:#ff9e9e;padding:10px;border-radius:8px;font-size:13px;margin-top:8px;display:none}
 </style>
 </head>
 <body>
@@ -100,7 +99,7 @@ textarea:focus{outline:none;border-color:var(--green)}
 <div class="coach">
 <div id="cIcon" style="font-size:32px">🦉</div>
 <div style="flex:1">
-<div id="cText" style="font-size:13px;line-height:1.5">أهلاً! الصق الـ PGN واضغط "بدء التحليل". المحرك Stockfish 16 يحلل بعمق 18.</div>
+<div id="cText" style="font-size:13px;line-height:1.5">أهلاً! الصق الـ PGN واضغط "بدء التحليل". المحرك يحلل بعمق 15.</div>
 <div id="bestBox" style="display:none;margin-top:4px"><span class="best-pill">الأفضل: <span id="bestTxt">--</span></span></div>
 </div>
 </div>
@@ -135,14 +134,13 @@ textarea:focus{outline:none;border-color:var(--green)}
 <button id="btnReport" class="ctrl-btn" style="font-size:13px">📊 تقرير</button>
 </div>
 
-<textarea id="pgnIn" placeholder="الصق PGN المباراة هنا...
-مثال: 1.e4 e5 2.Nf3 Nc6 3.Bb5"></textarea>
+<textarea id="pgnIn" placeholder="الصق PGN المباراة هنا...&#10;مثال: 1.e4 e5 2.Nf3 Nc6 3.Bb5"></textarea>
+<div class="error-box" id="errorBox"></div>
 <div class="prog-bar" id="pBar"><div class="prog-fill" id="pFill"></div></div>
 <div id="status" class="status">جاري التحضير...</div>
 <button id="btnRun" class="btn-run">⚡ بدء التحليل (Stockfish 16)</button>
 </div>
 
-<!-- Modal -->
 <div class="modal" id="modal">
 <div class="modal-content">
 <div class="modal-head"><h2 id="modalTitle">📊 تقرير المباراة</h2><button class="modal-close" onclick="closeModal()">×</button></div>
@@ -207,300 +205,720 @@ textarea:focus{outline:none;border-color:var(--green)}
 </div>
 
 <script>
-// ==================== STOCKFISH ENGINE ====================
-var engine=null,engineReady=false,engineQueue=[],currentResolve=null;
+var engine = null, engineReady = false, engineQueue = [], currentResolve = null, engineInfo = {};
 
-function initEngine(){
-  try{
-    engine=STOCKFISH();
-    engine.onmessage=function(e){
-      var line=e.data?e.data:e;
-      if(line==='uciok'){engineReady=true;processQueue();return}
-      if(currentResolve&&line.startsWith('bestmove')){
-        var best=line.split(' ')[1];
-        currentResolve({bestMove:best==='(none)'?null:best});
-        currentResolve=null;processQueue();
-      }
-    };
-    engine.postMessage('uci');
-    engine.postMessage('isready');
-  }catch(err){
-    console.log('Stockfish fallback to Lichess API');
-    engineReady=false;
-  }
-}
-
-function processQueue(){
-  if(engineQueue.length>0&&engineReady&&!currentResolve){
-    var item=engineQueue.shift();
-    currentResolve=item.resolve;
-    engine.postMessage('position fen '+item.fen);
-    engine.postMessage('go depth 15');
-  }
-}
-
-function getStockfishBestMove(fen){
-  return new Promise(function(resolve){
-    if(!engineReady){resolve(null);return}
-    engineQueue.push({fen:fen,resolve:resolve});
-    processQueue();
-  });
-}
-
-// ==================== PST EVAL (Fallback) ====================
-var PST={p:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],n:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,0,0,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],b:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,10,10,10,10,0,-10,-10,5,5,10,10,5,5,-10,-10,0,5,10,10,5,0,-10,-10,10,10,10,10,10,0,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],r:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,5,10,10,10,10,10,10,5,0,0,0,5,5,0,0,0],q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,0,-5,0,5,5,5,5,0,-5,-10,0,5,5,5,5,0,-10,-10,0,0,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],k:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]};
-var PVAL={p:100,n:320,b:330,r:500,q:900,k:20000};
-
-function sqIndex(r,c){return r*8+c}
-function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
-function fmtScore(cp){if(cp==null)return"+0.0";if(Math.abs(cp)>=10000){var m=cp>0?Math.ceil((20000-cp)/100):Math.ceil((20000+cp)/100);return(cp>0?"+M":"-M")+m}var v=(cp/100).toFixed(1);return(cp>0?"+":"")+v}
-function winChance(cp){return 50+50*(2/(1+Math.exp(-.00368208*cp))-1)}
-function estElo(a){var x=parseFloat(a);if(isNaN(x))return"--";if(x<40)return Math.floor(800+x*5);if(x<60)return Math.floor(1000+(x-40)*25);if(x<80)return Math.floor(1500+(x-60)*25);return Math.floor(2000+(x-80)*30)}
-
-function localEval(fen){
-  var c=new Chess(fen);
-  if(c.in_checkmate())return{cp:c.turn()==='w'?-10000:10000,best:null};
-  if(c.in_draw()||c.in_stalemate())return{cp:0,best:null};
-  var sc=0,b=c.board();
-  for(var r=0;r<8;r++){for(var col=0;col<8;col++){var p=b[r][col];if(p){var sq=p.color==='w'?sqIndex(r,col):sqIndex(7-r,col);sc+=(p.color==='w'?1:-1)*(PVAL[p.type]+(PST[p.type]?PST[p.type][sq]:0))}}}
-  var mob=c.moves().length;sc+=(c.turn()==='w'?1:-1)*mob*3;
-  return{cp:Math.round(sc),best:null}
-}
-
-async function fetchEval(fen){
-  try{
-    var res=await fetch('https://lichess.org/api/cloud-eval?fen='+encodeURIComponent(fen)+'&multiPv=1');
-    if(!res.ok)return localEval(fen);
-    var d=await res.json();
-    if(d&&d.pvs&&d.pvs[0]){
-      var pv=d.pvs[0],cp=0;
-      if(pv.cp!==undefined)cp=pv.cp;
-      else if(pv.mate!==undefined)cp=pv.mate>0?10000+(20-pv.mate):-10000-(20+pv.mate);
-      var bm=pv.moves?pv.moves.split(' ')[0]:null;
-      return{cp:cp,best:bm}
+function initEngine() {
+    try {
+        if (typeof STOCKFISH === 'undefined') {
+            console.warn('Stockfish not loaded from CDN');
+            engineReady = false;
+            return;
+        }
+        engine = STOCKFISH();
+        engine.onmessage = function(e) {
+            var line = (e.data ? e.data : e).toString().trim();
+            if (line === 'uciok') {
+                engineReady = true;
+                engine.postMessage('setoption name Hash value 16');
+                engine.postMessage('setoption name Threads value 1');
+                processQueue();
+                return;
+            }
+            if (line.startsWith('info') && line.includes('score')) {
+                var scoreMatch = line.match(/score (cp|mate) (-?\d+)/);
+                if (scoreMatch) {
+                    var type = scoreMatch[1];
+                    var val = parseInt(scoreMatch[2]);
+                    if (type === 'cp') engineInfo.lastCp = val;
+                    else engineInfo.lastMate = val;
+                }
+            }
+            if (currentResolve && line.startsWith('bestmove')) {
+                var parts = line.split(' ');
+                var best = parts[1];
+                var cp = engineInfo.lastCp !== undefined ? engineInfo.lastCp : null;
+                var mate = engineInfo.lastMate !== undefined ? engineInfo.lastMate : null;
+                currentResolve({
+                    bestMove: best === '(none)' ? null : best,
+                    cp: cp,
+                    mate: mate
+                });
+                engineInfo = {};
+                currentResolve = null;
+                processQueue();
+            }
+        };
+        engine.postMessage('uci');
+        engine.postMessage('isready');
+    } catch (err) {
+        console.error('Engine init error:', err);
+        engineReady = false;
     }
-    return localEval(fen)
-  }catch(e){return localEval(fen)}
 }
 
-// ==================== APP STATE ====================
-var board=null,historyMoves=[],analysisResults=[],currentIndex=-1,evalChart=null,rChart=null,allEvals=[],autoTimer=null;
-var openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",openHistory=[];
-
-function initBoard(){
-  var el=document.getElementById('board');if(!el)return;el.innerHTML='';
-  board=Chessboard('board',{position:'start',draggable:false,pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'});
-  setTimeout(function(){if(board&&board.resize)board.resize()},100);
+function processQueue() {
+    if (engineQueue.length > 0 && engineReady && !currentResolve) {
+        var item = engineQueue.shift();
+        currentResolve = item.resolve;
+        engine.postMessage('position fen ' + item.fen);
+        engine.postMessage('go depth 15');
+    }
 }
 
-$(document).ready(function(){
-  initEngine();
-  setTimeout(initBoard,50);
-  $(window).on('resize',function(){if(board&&board.resize)board.resize()});
-  $('#btnRun').click(startAnalysis);
-  $('#btnNext').click(function(){renderStep(currentIndex+1)});
-  $('#btnPrev').click(function(){renderStep(currentIndex-1)});
-  $('#btnAuto').click(toggleAuto);
-  $('#btnReport').click(function(){openModal('report')});
-  $('#btnOpenings').click(function(){openModal('openings');loadOpenings()});
-  $(document).on('keydown',function(e){if(e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight'||e.key==='ArrowDown')renderStep(currentIndex+1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')renderStep(currentIndex-1)});
+function getStockfishBestMove(fen) {
+    return new Promise(function(resolve) {
+        if (!engineReady) { resolve(null); return; }
+        engineQueue.push({ fen: fen, resolve: resolve });
+        processQueue();
+    });
+}
+
+var PST = {
+    p: [0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10, 5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5, 5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0],
+    n: [-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30, -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30, -40,-20,0,0,0,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50],
+    b: [-20,-10,-10,-10,-10,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,10,10,10,10,0,-10, -10,5,5,10,10,5,5,-10, -10,0,5,10,10,5,0,-10, -10,10,10,10,10,10,0,-10, -10,5,0,0,0,0,5,-10, -20,-10,-10,-10,-10,-10,-10,-20],
+    r: [0,0,0,0,0,0,0,0, 5,10,10,10,10,10,10,5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, 5,10,10,10,10,10,10,5, 0,0,0,5,5,0,0,0],
+    q: [-20,-10,-10,-5,-5,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,5,5,5,0,-10, -5,0,5,5,5,5,0,0, -5,0,5,5,5,5,0,-5, -10,0,5,5,5,5,0,-10, -10,0,0,0,0,0,0,-10, -20,-10,-10,-5,-5,-10,-10,-20],
+    k: [-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20]
+};
+var PVAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+function sqIndex(r, c) { return r * 8 + c; }
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+function fmtScore(cp) {
+    if (cp == null) return "+0.0";
+    if (Math.abs(cp) >= 10000) {
+        var m = cp > 0 ? Math.ceil((20000 - cp) / 100) : Math.ceil((20000 + cp) / 100);
+        return (cp > 0 ? "+M" : "-M") + m;
+    }
+    var v = (cp / 100).toFixed(1);
+    return (cp > 0 ? "+" : "") + v;
+}
+function winChance(cp) { return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1); }
+function estElo(a) {
+    var x = parseFloat(a);
+    if (isNaN(x)) return "--";
+    if (x < 40) return Math.floor(800 + x * 5);
+    if (x < 60) return Math.floor(1000 + (x - 40) * 25);
+    if (x < 80) return Math.floor(1500 + (x - 60) * 25);
+    return Math.floor(2000 + (x - 80) * 30);
+}
+
+function localEval(fen) {
+    var c = new Chess(fen);
+    if (c.in_checkmate()) return { cp: c.turn() === 'w' ? -10000 : 10000, best: null };
+    if (c.in_draw() || c.in_stalemate()) return { cp: 0, best: null };
+    var sc = 0, b = c.board();
+    for (var r = 0; r < 8; r++) {
+        for (var col = 0; col < 8; col++) {
+            var p = b[r][col];
+            if (p) {
+                var sq = p.color === 'w' ? sqIndex(r, col) : sqIndex(7 - r, col);
+                sc += (p.color === 'w' ? 1 : -1) * (PVAL[p.type] + (PST[p.type] ? PST[p.type][sq] : 0));
+            }
+        }
+    }
+    var mob = c.moves().length;
+    sc += (c.turn() === 'w' ? 1 : -1) * mob * 3;
+    var moves = c.moves({ verbose: true });
+    var bestMove = moves.length > 0 ? moves[0].san : null;
+    return { cp: Math.round(sc), best: bestMove };
+}
+
+async function fetchEval(fen) {
+    if (engineReady) {
+        try {
+            var sf = await getStockfishBestMove(fen);
+            if (sf && sf.bestMove) {
+                var cp = sf.cp !== null ? sf.cp : (sf.mate !== null ? (sf.mate > 0 ? 10000 + (20 - sf.mate) : -10000 - (20 + sf.mate)) : 0);
+                return { cp: cp, best: sf.bestMove };
+            }
+        } catch (e) {}
+    }
+
+    try {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 3000);
+        var res = await fetch('https://lichess.org/api/cloud-eval?fen=' + encodeURIComponent(fen) + '&multiPv=1', {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+            var data = await res.json();
+            if (data && data.pvs && data.pvs[0]) {
+                var pv = data.pvs[0], cp = 0;
+                if (pv.cp !== undefined) cp = pv.cp;
+                else if (pv.mate !== undefined) cp = pv.mate > 0 ? 10000 + (20 - pv.mate) : -10000 - (20 + pv.mate);
+                var bm = pv.moves ? pv.moves.split(' ')[0] : null;
+                return { cp: cp, best: bm };
+            }
+        }
+    } catch (e) {}
+
+    return localEval(fen);
+}
+
+var board = null, historyMoves = [], analysisResults = [], currentIndex = -1, evalChart = null, rChart = null, allEvals = [], autoTimer = null;
+var openFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", openHistory = [];
+
+function initBoard() {
+    var el = document.getElementById('board');
+    if (!el) return;
+    el.innerHTML = '';
+    try {
+        board = Chessboard('board', {
+            position: 'start',
+            draggable: false,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+            showNotation: false
+        });
+        setTimeout(function() { if (board && board.resize) board.resize(); }, 100);
+        setTimeout(function() { if (board && board.resize) board.resize(); }, 300);
+        setTimeout(function() { if (board && board.resize) board.resize(); }, 600);
+    } catch (err) {
+        console.error('Board init error:', err);
+        el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)">⚠️ تعذر تحميل الرقعة</div>';
+    }
+}
+
+$(document).ready(function() {
+    initEngine();
+    setTimeout(initBoard, 100);
+    $(window).on('resize', function() { if (board && board.resize) board.resize(); });
+    $('#btnRun').click(startAnalysis);
+    $('#btnNext').click(function() { renderStep(currentIndex + 1); });
+    $('#btnPrev').click(function() { renderStep(currentIndex - 1); });
+    $('#btnAuto').click(toggleAuto);
+    $('#btnReport').click(function() { openModal('report'); });
+    $('#btnOpenings').click(function() { openModal('openings'); loadOpenings(); });
+    $(document).on('keydown', function(e) {
+        if (e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') renderStep(currentIndex + 1);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') renderStep(currentIndex - 1);
+    });
 });
 
-// ==================== ANALYSIS ====================
-async function startAnalysis(){
-  var pgn=$('#pgnIn').val().replace(/[٠-٩]/g,function(d){return"٠١٢٣٤٥٦٧٨٩".indexOf(d)});
-  var chess=new Chess();
-  if(!chess.load_pgn(pgn)){
+function showError(msg) {
+    var box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.style.display = 'block';
+    setTimeout(function() { box.style.display = 'none'; }, 6000);
+}
+
+function parsePGN(pgnText) {
+    var chess = new Chess();
+    try {
+        if (chess.load_pgn(pgnText)) {
+            return chess.history({ verbose: true });
+        }
+    } catch (e) {}
+
     chess.reset();
-    var clean=pgn.replace(/\{[^}]+\}/g,'').replace(/\d+\.(\.\.)?/g,'').replace(/1-0|0-1|1\/2-1\/2|\*|1\/2/g,'');
-    var tok=clean.trim().split(/\s+/);
-    for(var i=0;i<tok.length;i++){var t=tok[i];if(t&&t.length>1&&!t.includes('.')&&!t.match(/^[0-9]+$/)){try{chess.move(t)}catch(e){}}}
-  }
-  historyMoves=chess.history({verbose:true});
-  if(historyMoves.length===0){alert("تنبيه: يرجى التأكد من صحة الـ PGN.");return}
-  
-  $('#btnRun').prop('disabled',true);$('#status').show().text('جاري التحليل بعمق 15...');$('#pBar').show();$('#pFill').css('width','0%');
-  
-  var sim=new Chess(),fens=[sim.fen()];
-  for(var i=0;i<historyMoves.length;i++){sim.move(historyMoves[i]);fens.push(sim.fen())}
-  
-  allEvals=[];analysisResults=[];
-  
-  for(var k=0;k<fens.length;k++){
-    var pct=Math.round((k/fens.length)*100);
-    $('#status').text('تحليل الموقف '+k+' من '+(fens.length-1)+' ('+pct+'%)');
-    $('#pFill').css('width',pct+'%');
-    
-    var result=await fetchEval(fens[k]);
-    allEvals.push(result.cp);
-    await sleep(150);
-  }
-  
-  processAnalysis(fens);
-  renderMoves();
-  drawChart(allEvals);
-  renderStep(-1);
-  
-  $('#pBar').hide();$('#status').hide();$('#btnRun').prop('disabled',false);
-  $('#cText').text('تم التحليل بنجاح! استخدم الأزرار أو الأسهم للتنقل.');$('#cIcon').text('✅');
-  saveData(pgn);
+    var clean = pgnText
+        .replace(/\{[^}]*\}/g, ' ')
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/\$\d+/g, ' ')
+        .replace(/\d+\.\.\./g, ' ')
+        .replace(/\d+\./g, ' ')
+        .replace(/(1-0|0-1|1\/2-1\/2|\*)\s*$/g, ' ')
+        .replace(/\?\?|\?\!|!\?|!!|\?|!/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    var tokens = clean.split(/\s+/);
+    for (var i = 0; i < tokens.length; i++) {
+        var t = tokens[i].trim();
+        if (!t || t.length < 2) continue;
+        if (/^\d+$/.test(t)) continue;
+        try {
+            chess.move(t);
+        } catch (e) {
+            try {
+                chess.move(t, { sloppy: true });
+            } catch (e2) {
+                var fixed = t.replace(/O-O-O/g, 'O-O-O').replace(/O-O/g, 'O-O');
+                if (fixed !== t) {
+                    try { chess.move(fixed); } catch(e3) {}
+                }
+            }
+        }
+    }
+    return chess.history({ verbose: true });
 }
 
-function processAnalysis(fens){
-  var wD=[],bD=[];analysisResults=[];
-  for(var i=0;i<historyMoves.length;i++){
-    var m=historyMoves[i],side=m.color,before=allEvals[i],after=allEvals[i+1];
-    var loss=side==='w'?Math.max(0,(before-after)/100):Math.max(0,(after-before)/100);
-    var pw=winChance(side==='w'?before:-before),cw=winChance(side==='w'?after:-after),wd=Math.max(0,pw-cw);
-    var badge={name:'جيدة',icon:'✓',bg:'bg-good',msg:'نقلة جيدة تحافظ على التوازن.'};
-    if(i<8){badge={name:'كتاب',icon:'📖',bg:'bg-book',msg:'نقلة افتتاحية معروفة.'}}
-    else if(wd>25||loss>4){badge={name:'خطأ فادح',icon:'??',bg:'bg-blund',msg:'كارثة! نقلة فادحة تقلب المباراة.'}}
-    else if(wd>15||loss>2.5){badge={name:'أضاعت فرصة',icon:'✖',bg:'bg-miss',msg:'أضعت فرصة ذهبية للأفضلية.'}}
-    else if(wd>8||loss>1.5){badge={name:'خطأ',icon:'?',bg:'bg-mist',msg:'خطأ تكتيكي كلفك أفضلية.'}}
-    else if(wd>4||loss>0.7){badge={name:'غير دقيقة',icon:'?!',bg:'bg-inacc',msg:'نقلة غير دقيقة، فكر بخيار آخر.'}}
-    else if(loss<=0.02){badge={name:'الأفضل',icon:'★',bg:'bg-best',msg:'أفضل خيار متاح! نقلة مثالية.'}}
-    else if(loss<=0.1){badge={name:'ممتازة',icon:'✓',bg:'bg-excel',msg:'نقلة قوية جداً قريبة من الأفضل.'}}
-    else if(loss<=0.3){badge={name:'جيدة',icon:'✓',bg:'bg-good',msg:'نقلة جيدة تحافظ على التوازن.'}}
-    if(side==='w')wD.push(wd);else bD.push(wd);
-    analysisResults.push({eval:after,evalStr:fmtScore(after),san:m.san,to:m.to,badge:badge,loss:loss})
-  }
-  function caps(drops){if(!drops.length)return"0.0%";var t=0;drops.forEach(function(d){t+=Math.min(100,Math.max(0,103.1668*Math.exp(-0.04354*d)))});return(t/drops.length).toFixed(1)+"%"}
-  var wa=caps(wD),ba=caps(bD);$('#wAcc').text(wa);$('#bAcc').text(ba);$('#wElo').text(estElo(wa));$('#bElo').text(estElo(ba));
+async function startAnalysis() {
+    var pgn = $('#pgnIn').val().trim();
+    if (!pgn) {
+        showError('يرجى إدخال PGN أولاً');
+        return;
+    }
+
+    historyMoves = parsePGN(pgn);
+    if (historyMoves.length === 0) {
+        showError('تعذر قراءة الـ PGN. تأكد من صحة التنسيق.');
+        return;
+    }
+
+    $('#btnRun').prop('disabled', true);
+    $('#status').show().text('جاري تحليل ' + historyMoves.length + ' نقلة...');
+    $('#pBar').show();
+    $('#pFill').css('width', '0%');
+    $('#errorBox').hide();
+
+    var sim = new Chess(), fens = [sim.fen()];
+    for (var i = 0; i < historyMoves.length; i++) {
+        sim.move(historyMoves[i]);
+        fens.push(sim.fen());
+    }
+
+    allEvals = [];
+    analysisResults = [];
+
+    for (var k = 0; k < fens.length; k++) {
+        var pct = Math.round((k / fens.length) * 100);
+        $('#status').text('تحليل الموقف ' + k + ' من ' + (fens.length - 1) + ' (' + pct + '%)');
+        $('#pFill').css('width', pct + '%');
+
+        try {
+            var result = await fetchEval(fens[k]);
+            allEvals.push(result.cp);
+        } catch (e) {
+            allEvals.push(0);
+        }
+        await sleep(120);
+    }
+
+    processAnalysis(fens);
+    renderMoves();
+    drawChart(allEvals);
+    renderStep(-1);
+
+    $('#pBar').hide();
+    $('#status').hide();
+    $('#btnRun').prop('disabled', false);
+    $('#cText').text('تم التحليل بنجاح! ' + historyMoves.length + ' نقلة. استخدم الأزرار أو الأسهم للتنقل.');
+    $('#cIcon').text('✅');
+    saveData(pgn);
 }
 
-function renderMoves(){
-  var box=$('#movesBar').empty();
-  historyMoves.forEach(function(m,i){var num=Math.floor(i/2)+1;var pre=(i%2===0)?num+'. ':'';box.append('<button id="mb-'+i+'" class="move-btn" onclick="renderStep('+i+')">'+pre+m.san+'</button>')})
+function processAnalysis(fens) {
+    var wD = [], bD = [];
+    analysisResults = [];
+    for (var i = 0; i < historyMoves.length; i++) {
+        var m = historyMoves[i], side = m.color;
+        var before = allEvals[i], after = allEvals[i + 1];
+        var loss = side === 'w' ? Math.max(0, (before - after) / 100) : Math.max(0, (after - before) / 100);
+        var pw = winChance(side === 'w' ? before : -before);
+        var cw = winChance(side === 'w' ? after : -after);
+        var wd = Math.max(0, pw - cw);
+
+        var badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
+
+        if (i < 8) {
+            badge = { name: 'كتاب', icon: '📖', bg: 'bg-book', msg: 'نقلة افتتاحية معروفة.' };
+        } else if (wd > 25 || loss > 4) {
+            badge = { name: 'خطأ فادح', icon: '??', bg: 'bg-blund', msg: 'كارثة! نقلة فادحة تقلب المباراة.' };
+        } else if (wd > 15 || loss > 2.5) {
+            badge = { name: 'أضاعت فرصة', icon: '✖', bg: 'bg-miss', msg: 'أضعت فرصة ذهبية للأفضلية.' };
+        } else if (wd > 8 || loss > 1.5) {
+            badge = { name: 'خطأ', icon: '?', bg: 'bg-mist', msg: 'خطأ تكتيكي كلفك أفضلية.' };
+        } else if (wd > 4 || loss > 0.7) {
+            badge = { name: 'غير دقيقة', icon: '?!', bg: 'bg-inacc', msg: 'نقلة غير دقيقة، فكر بخيار آخر.' };
+        } else if (loss <= 0.02) {
+            badge = { name: 'الأفضل', icon: '★', bg: 'bg-best', msg: 'أفضل خيار متاح! نقلة مثالية.' };
+        } else if (loss <= 0.1) {
+            badge = { name: 'ممتازة', icon: '✓', bg: 'bg-excel', msg: 'نقلة قوية جداً قريبة من الأفضل.' };
+        } else if (loss <= 0.3) {
+            badge = { name: 'جيدة', icon: '✓', bg: 'bg-good', msg: 'نقلة جيدة تحافظ على التوازن.' };
+        }
+
+        if (side === 'w') wD.push(wd); else bD.push(wd);
+        analysisResults.push({ eval: after, evalStr: fmtScore(after), san: m.san, to: m.to, badge: badge, loss: loss });
+    }
+
+    function caps(drops) {
+        if (!drops.length) return "0.0%";
+        var t = 0;
+        drops.forEach(function(d) { t += Math.min(100, Math.max(0, 103.1668 * Math.exp(-0.04354 * d))); });
+        return (t / drops.length).toFixed(1) + "%";
+    }
+    var wa = caps(wD), ba = caps(bD);
+    $('#wAcc').text(wa);
+    $('#bAcc').text(ba);
+    $('#wElo').text(estElo(wa));
+    $('#bElo').text(estElo(ba));
 }
 
-function renderStep(idx){
-  if(idx<-1||idx>=historyMoves.length)return;
-  var c=new Chess();for(var i=0;i<=idx;i++)c.move(historyMoves[i]);
-  currentIndex=idx;if(board&&board.position)board.position(c.fen());$('.badge').remove();
-  if(idx>=0){
-    var it=analysisResults[idx],ev=it.eval;
-    $('#scorePill').text(it.evalStr);$('#mTitle').text(it.san+' - '+it.badge.name);$('#mSub').text(it.badge.msg);$('#cText').text(it.badge.msg);$('#cIcon').text(it.badge.icon);$('#bestBox').show();$('#bestTxt').text('غير متاح');
-    var sq=$('#board').find('.square-'+it.to);if(sq.length)sq.append('<div class="badge '+it.badge.bg+'">'+it.badge.icon+'</div>');
-    var fh=Math.abs(ev)>=10000?(ev>0?95:5):Math.max(5,Math.min(95,50+(ev/100)*4));$('#eFill').css('height',fh+'%');
-    if(evalChart){evalChart.setActiveElements([{datasetIndex:0,index:idx+1}]);evalChart.update()}
-  }else{
-    $('#scorePill').text('+0.0');$('#mTitle').text('بداية المباراة');$('#mSub').text('اضغط التالي أو سهم اليمين');$('#eFill').css('height','50%');$('#cText').text('المباراة تبدأ من هنا.');$('#cIcon').text('🦉');$('#bestBox').hide()
-  }
-  $('.move-btn').removeClass('active');if(idx>=0)$('#mb-'+idx).addClass('active');
+function renderMoves() {
+    var box = $('#movesBar').empty();
+    historyMoves.forEach(function(m, i) {
+        var num = Math.floor(i / 2) + 1;
+        var pre = (i % 2 === 0) ? num + '. ' : '';
+        box.append('<button id="mb-' + i + '" class="move-btn" onclick="renderStep(' + i + ')">' + pre + m.san + '</button>');
+    });
 }
 
-function drawChart(evals){
-  if(evalChart)evalChart.destroy();
-  var ctx=document.getElementById('evalChart').getContext('2d');
-  var pts=evals.map(function(e){return Math.abs(e)>=10000?(e>0?10:-10):Math.max(-10,Math.min(10,e/100))});
-  var lbls=evals.map(function(_,i){return i});
-  evalChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:[{data:pts,borderColor:'#38bdf8',backgroundColor:function(ctx){var ch=ctx.chart,ar=ch.chartArea;if(!ar)return null;var c=ch.ctx,g=c.createLinearGradient(0,ar.top,0,ar.bottom);g.addColorStop(0,'rgba(56,189,248,0.3)');g.addColorStop(0.5,'rgba(56,189,248,0.05)');g.addColorStop(1,'rgba(239,68,68,0.3)');return g},borderWidth:2,fill:true,pointRadius:2,pointHoverRadius:6,pointBackgroundColor:'#38bdf8',tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{x:{display:false},y:{display:false,min:-10,max:10}},plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:'#1a1917',titleColor:'#fff',bodyColor:'#a1a1aa',borderColor:'#2e2c29',borderWidth:1,callbacks:{title:function(){return''},label:function(ctx){var i=ctx.dataIndex;if(i===0)return'بداية: +0.0';if(analysisResults[i-1])return analysisResults[i-1].san+': '+analysisResults[i-1].evalStr;return''}}}},onClick:function(e,els){if(els.length){var i=els[0].index-1;if(i>=-1&&i<historyMoves.length)renderStep(i)}}});
+function renderStep(idx) {
+    if (idx < -1 || idx >= historyMoves.length) return;
+    var c = new Chess();
+    for (var i = 0; i <= idx; i++) c.move(historyMoves[i]);
+    currentIndex = idx;
+    if (board && board.position) board.position(c.fen());
+    $('.badge').remove();
+
+    if (idx >= 0) {
+        var it = analysisResults[idx], ev = it.eval;
+        $('#scorePill').text(it.evalStr);
+        $('#mTitle').text(it.san + ' - ' + it.badge.name);
+        $('#mSub').text(it.badge.msg);
+        $('#cText').text(it.badge.msg);
+        $('#cIcon').text(it.badge.icon);
+        $('#bestBox').show();
+        $('#bestTxt').text('غير متاح');
+
+        var sq = $('#board').find('.square-' + it.to);
+        if (sq.length) sq.append('<div class="badge ' + it.badge.bg + '">' + it.badge.icon + '</div>');
+
+        var fh = Math.abs(ev) >= 10000 ? (ev > 0 ? 95 : 5) : Math.max(5, Math.min(95, 50 + (ev / 100) * 4));
+        $('#eFill').css('height', fh + '%');
+
+        if (evalChart) {
+            evalChart.setActiveElements([{ datasetIndex: 0, index: idx + 1 }]);
+            evalChart.update();
+        }
+    } else {
+        $('#scorePill').text('+0.0');
+        $('#mTitle').text('بداية المباراة');
+        $('#mSub').text('اضغط التالي أو سهم اليمين');
+        $('#eFill').css('height', '50%');
+        $('#cText').text('المباراة تبدأ من هنا.');
+        $('#cIcon').text('🦉');
+        $('#bestBox').hide();
+    }
+    $('.move-btn').removeClass('active');
+    if (idx >= 0) $('#mb-' + idx).addClass('active');
 }
 
-function toggleAuto(){
-  if(autoTimer){clearInterval(autoTimer);autoTimer=null;$('#btnAuto').text('▶ تشغيل')}else{$('#btnAuto').text('⏸ إيقاف');autoTimer=setInterval(function(){if(currentIndex<historyMoves.length-1)renderStep(currentIndex+1);else toggleAuto()},1200)}
+function drawChart(evals) {
+    if (evalChart) evalChart.destroy();
+    var ctx = document.getElementById('evalChart').getContext('2d');
+    var pts = evals.map(function(e) {
+        return Math.abs(e) >= 10000 ? (e > 0 ? 10 : -10) : Math.max(-10, Math.min(10, e / 100));
+    });
+    var lbls = evals.map(function(_, i) { return i; });
+    evalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: lbls,
+            datasets: [{
+                data: pts,
+                borderColor: '#38bdf8',
+                backgroundColor: function(ctx) {
+                    var ch = ctx.chart, ar = ch.chartArea;
+                    if (!ar) return null;
+                    var c = ch.ctx, g = c.createLinearGradient(0, ar.top, 0, ar.bottom);
+                    g.addColorStop(0, 'rgba(56,189,248,0.3)');
+                    g.addColorStop(0.5, 'rgba(56,189,248,0.05)');
+                    g.addColorStop(1, 'rgba(239,68,68,0.3)');
+                    return g;
+                },
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#38bdf8',
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { display: false },
+                y: { display: false, min: -10, max: 10 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#1a1917',
+                    titleColor: '#fff',
+                    bodyColor: '#a1a1aa',
+                    borderColor: '#2e2c29',
+                    borderWidth: 1,
+                    callbacks: {
+                        title: function() { return ''; },
+                        label: function(ctx) {
+                            var i = ctx.dataIndex;
+                            if (i === 0) return 'بداية: +0.0';
+                            if (analysisResults[i - 1]) return analysisResults[i - 1].san + ': ' + analysisResults[i - 1].evalStr;
+                            return '';
+                        }
+                    }
+                }
+            },
+            onClick: function(e, els) {
+                if (els.length) {
+                    var i = els[0].index - 1;
+                    if (i >= -1 && i < historyMoves.length) renderStep(i);
+                }
+            }
+        }
+    });
 }
 
-function saveData(pgn){
-  var on="مباراة شطرنج",ec="A00";
-  var mo=pgn.match(/\[Opening "([^"]+)"\]/);var me=pgn.match(/\[ECO "([^"]+)"\]/);
-  if(mo)on=mo[1];if(me)ec=me[1];
-  var ms={best:0,excel:0,good:0,book:0,inacc:0,mist:0,miss:0,blund:0};
-  analysisResults.forEach(function(it){var n=it.badge.name;if(n==='الأفضل')ms.best++;else if(n==='ممتازة')ms.excel++;else if(n==='جيدة')ms.good++;else if(n==='كتاب')ms.book++;else if(n==='غير دقيقة')ms.inacc++;else if(n==='خطأ')ms.mist++;else if(n==='أضاعت فرصة')ms.miss++;else if(n==='خطأ فادح')ms.blund++});
-  var pl={evals:allEvals,opening:{name:on,code:ec},whiteAcc:$('#wAcc').text(),blackAcc:$('#bAcc').text(),whiteElo:$('#wElo').text(),blackElo:$('#bElo').text(),moveStats:ms};
-  localStorage.setItem('chessAnalysisData',JSON.stringify(pl));
+function toggleAuto() {
+    if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        $('#btnAuto').text('▶ تشغيل');
+    } else {
+        $('#btnAuto').text('⏸ إيقاف');
+        autoTimer = setInterval(function() {
+            if (currentIndex < historyMoves.length - 1) renderStep(currentIndex + 1);
+            else toggleAuto();
+        }, 1200);
+    }
 }
 
-// ==================== MODAL & REPORT ====================
-function openModal(tab){
-  document.getElementById('modal').style.display='block';document.body.style.overflow='hidden';
-  if(tab==='report'){document.getElementById('modalTitle').textContent='📊 تقرير المباراة';switchTab('report',document.querySelectorAll('.tab-btn')[0]);fillReport()}
-  if(tab==='openings'){document.getElementById('modalTitle').textContent='📖 مستكشف الافتتاحيات';switchTab('openings',document.querySelectorAll('.tab-btn')[1]);loadOpenings()}
-}
-function closeModal(){document.getElementById('modal').style.display='none';document.body.style.overflow=''}
-function switchTab(t,btn){
-  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
-  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
-  if(btn)btn.classList.add('active');else document.querySelectorAll('.tab-btn')[t==='report'?0:1].classList.add('active');
-  document.getElementById('tab-'+t).classList.add('active')
-}
-
-function fillReport(){
-  var d=localStorage.getItem('chessAnalysisData');
-  var ev=[0,0.2,-0.1,0.5],oi={name:'لا توجد بيانات',code:'قم بالتحليل أولاً'},wa='--',ba='--',we='--',be='--',ms={best:0,excel:0,good:0,book:0,inacc:0,mist:0,miss:0,blund:0};
-  if(d){try{var p=JSON.parse(d);if(p.evals)ev=p.evals;if(p.opening)oi=p.opening;if(p.whiteAcc)wa=p.whiteAcc;if(p.blackAcc)ba=p.blackAcc;if(p.whiteElo)we=p.whiteElo;if(p.blackElo)be=p.blackElo;if(p.moveStats)ms=p.moveStats}catch(e){}}
-  document.getElementById('rOpenName').textContent=oi.name;document.getElementById('rOpenCode').textContent=oi.code;
-  document.getElementById('rWAcc').textContent=wa;document.getElementById('rBAcc').textContent=ba;
-  document.getElementById('rWElo').textContent=we;document.getElementById('rBElo').textContent=be;
-  document.getElementById('sBest').textContent=ms.best||0;document.getElementById('sExcel').textContent=ms.excel||0;document.getElementById('sGood').textContent=ms.good||0;document.getElementById('sBook').textContent=ms.book||0;document.getElementById('sInacc').textContent=ms.inacc||0;document.getElementById('sMist').textContent=ms.mist||0;document.getElementById('sMiss').textContent=ms.miss||0;document.getElementById('sBlund').textContent=ms.blund||0;
-  if(rChart)rChart.destroy();
-  var ctx=document.getElementById('rChart').getContext('2d');
-  var pts=ev.map(function(e){return Math.abs(e)>=10000?(e>0?10:-10):Math.max(-10,Math.min(10,e/100))});
-  var lbls=ev.map(function(_,i){return'ن '+(i+1)});
-  rChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:[{label:'تقييم',data:pts,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,0.15)',fill:true,tension:0.3,pointRadius:ev.length>30?0:3,pointHoverRadius:6,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var i=ctx.dataIndex;var raw=ev[i];return'تقييم: '+fmtScore(raw)}}}},scales:{y:{grid:{color:'#2e2c29'},ticks:{color:'#a1a1aa',font:{size:10}},min:-10,max:10},x:{grid:{display:false},ticks:{color:'#a1a1aa',font:{size:9},maxTicksLimit:10}}}});
-}
-
-// ==================== OPENING EXPLORER ====================
-async function loadOpenings(){
-  var list=document.getElementById('openList');list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">جاري التحميل من Lichess...</div>';
-  try{
-    var res=await fetch('https://explorer.lichess.ovh/lichess?fen='+encodeURIComponent(openFen)+'&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200&recentGames=0');
-    var data=await res.json();renderOpenings(data)
-  }catch(e){list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">⚠️ خطأ في الاتصال. تأكد من الإنترنت.</div>'}
+function saveData(pgn) {
+    var on = "مباراة شطرنج", ec = "A00";
+    var mo = pgn.match(/\[Opening "([^"]+)"\]/);
+    var me = pgn.match(/\[ECO "([^"]+)"\]/);
+    if (mo) on = mo[1];
+    if (me) ec = me[1];
+    var ms = { best: 0, excel: 0, good: 0, book: 0, inacc: 0, mist: 0, miss: 0, blund: 0 };
+    analysisResults.forEach(function(it) {
+        var n = it.badge.name;
+        if (n === 'الأفضل') ms.best++;
+        else if (n === 'ممتازة') ms.excel++;
+        else if (n === 'جيدة') ms.good++;
+        else if (n === 'كتاب') ms.book++;
+        else if (n === 'غير دقيقة') ms.inacc++;
+        else if (n === 'خطأ') ms.mist++;
+        else if (n === 'أضاعت فرصة') ms.miss++;
+        else if (n === 'خطأ فادح') ms.blund++;
+    });
+    var pl = {
+        evals: allEvals,
+        opening: { name: on, code: ec },
+        whiteAcc: $('#wAcc').text(),
+        blackAcc: $('#bAcc').text(),
+        whiteElo: $('#wElo').text(),
+        blackElo: $('#bElo').text(),
+        moveStats: ms
+    };
+    try { localStorage.setItem('chessAnalysisData', JSON.stringify(pl)); } catch(e) {}
 }
 
-function renderOpenings(data){
-  var list=document.getElementById('openList');list.innerHTML='';
-  var nameBox=document.getElementById('openNameBox');
-  if(data.opening){nameBox.style.display='block';nameBox.textContent='📖 '+data.opening.name+' ('+data.opening.eco+')';}else{nameBox.style.display='none'}
-  var moves=data.moves||[];
-  if(moves.length===0){list.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">لا توجد نقلات شائعة لهذا الموقف</div>';document.getElementById('btnBackOpen').style.display=openHistory.length?'block':'none';return}
-  var total=moves.reduce(function(s,m){return s+m.white+m.draws+m.black},0);
-  moves.forEach(function(m){
-    var row=document.createElement('div');row.className='opening-row';
-    var games=m.white+m.draws+m.black;
-    var pct=Math.round((games/total)*100);
-    var wPct=games>0?Math.round((m.white/games)*100):0;
-    var dPct=games>0?Math.round((m.draws/games)*100):0;
-    var bPct=games>0?Math.round((m.black/games)*100):0;
-    row.innerHTML='<div style="flex:1"><div class="opening-san">'+m.san+'</div><div class="opening-stats">'+games.toLocaleString()+' لعبة | أبيض '+wPct+'% | تعادل '+dPct+'% | أسود '+bPct+'%</div><div class="opening-bar"><div class="opening-bar-fill" style="width:'+pct+'%"></div></div></div><div style="text-align:right;min-width:60px"><div style="font-size:16px;font-weight:900">'+pct+'%</div><div style="font-size:10px;color:var(--dim)">شيوعاً</div></div>';
-    row.onclick=function(){playOpeningMove(m.san)};
-    list.appendChild(row)
-  });
-  document.getElementById('btnBackOpen').style.display=openHistory.length?'block':'none';
+function openModal(tab) {
+    document.getElementById('modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    if (tab === 'report') {
+        document.getElementById('modalTitle').textContent = '📊 تقرير المباراة';
+        switchTab('report', document.querySelectorAll('.tab-btn')[0]);
+        fillReport();
+    }
+    if (tab === 'openings') {
+        document.getElementById('modalTitle').textContent = '📖 مستكشف الافتتاحيات';
+        switchTab('openings', document.querySelectorAll('.tab-btn')[1]);
+        loadOpenings();
+    }
+}
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+function switchTab(t, btn) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    else document.querySelectorAll('.tab-btn')[t === 'report' ? 0 : 1].classList.add('active');
+    document.getElementById('tab-' + t).classList.add('active');
 }
 
-function playOpeningMove(san){
-  var c=new Chess(openFen);c.move(san);openFen=c.fen();openHistory.push({fen:openFen,san:san});
-  updateBreadcrumb();loadOpenings();
+function fillReport() {
+    var d = localStorage.getItem('chessAnalysisData');
+    var ev = [0, 0.2, -0.1, 0.5], oi = { name: 'لا توجد بيانات', code: 'قم بالتحليل أولاً' },
+        wa = '--', ba = '--', we = '--', be = '--',
+        ms = { best: 0, excel: 0, good: 0, book: 0, inacc: 0, mist: 0, miss: 0, blund: 0 };
+    if (d) {
+        try {
+            var p = JSON.parse(d);
+            if (p.evals) ev = p.evals;
+            if (p.opening) oi = p.opening;
+            if (p.whiteAcc) wa = p.whiteAcc;
+            if (p.blackAcc) ba = p.blackAcc;
+            if (p.whiteElo) we = p.whiteElo;
+            if (p.blackElo) be = p.blackElo;
+            if (p.moveStats) ms = p.moveStats;
+        } catch (e) {}
+    }
+    document.getElementById('rOpenName').textContent = oi.name;
+    document.getElementById('rOpenCode').textContent = oi.code;
+    document.getElementById('rWAcc').textContent = wa;
+    document.getElementById('rBAcc').textContent = ba;
+    document.getElementById('rWElo').textContent = we;
+    document.getElementById('rBElo').textContent = be;
+    document.getElementById('sBest').textContent = ms.best || 0;
+    document.getElementById('sExcel').textContent = ms.excel || 0;
+    document.getElementById('sGood').textContent = ms.good || 0;
+    document.getElementById('sBook').textContent = ms.book || 0;
+    document.getElementById('sInacc').textContent = ms.inacc || 0;
+    document.getElementById('sMist').textContent = ms.mist || 0;
+    document.getElementById('sMiss').textContent = ms.miss || 0;
+    document.getElementById('sBlund').textContent = ms.blund || 0;
+
+    if (rChart) rChart.destroy();
+    var ctx = document.getElementById('rChart').getContext('2d');
+    var pts = ev.map(function(e) {
+        return Math.abs(e) >= 10000 ? (e > 0 ? 10 : -10) : Math.max(-10, Math.min(10, e / 100));
+    });
+    var lbls = ev.map(function(_, i) { return 'ن ' + (i + 1); });
+    rChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: lbls,
+            datasets: [{
+                label: 'تقييم',
+                data: pts,
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56,189,248,0.15)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: ev.length > 30 ? 0 : 3,
+                pointHoverRadius: 6,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            var i = ctx.dataIndex;
+                            var raw = ev[i];
+                            return 'تقييم: ' + fmtScore(raw);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: { color: '#2e2c29' },
+                    ticks: { color: '#a1a1aa', font: { size: 10 } },
+                    min: -10,
+                    max: 10
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#a1a1aa', font: { size: 9 }, maxTicksLimit: 10 }
+                }
+            }
+        }
+    });
 }
 
-function openingBack(){
-  if(openHistory.length===0)return;openHistory.pop();
-  if(openHistory.length===0){openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}else{openFen=openHistory[openHistory.length-1].fen}
-  updateBreadcrumb();loadOpenings();
+async function loadOpenings() {
+    var list = document.getElementById('openList');
+    list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">جاري التحميل من Lichess...</div>';
+    try {
+        var res = await fetch('https://explorer.lichess.ovh/lichess?fen=' + encodeURIComponent(openFen) + '&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200&recentGames=0');
+        var data = await res.json();
+        renderOpenings(data);
+    } catch (e) {
+        list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">⚠️ خطأ في الاتصال. تأكد من الإنترنت.</div>';
+    }
 }
 
-function resetOpening(){
-  openFen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";openHistory=[];
-  updateBreadcrumb();loadOpenings();
+function renderOpenings(data) {
+    var list = document.getElementById('openList');
+    list.innerHTML = '';
+    var nameBox = document.getElementById('openNameBox');
+    if (data.opening) {
+        nameBox.style.display = 'block';
+        nameBox.textContent = '📖 ' + data.opening.name + ' (' + data.opening.eco + ')';
+    } else {
+        nameBox.style.display = 'none';
+    }
+    var moves = data.moves || [];
+    if (moves.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">لا توجد نقلات شائعة لهذا الموقف</div>';
+        document.getElementById('btnBackOpen').style.display = openHistory.length ? 'block' : 'none';
+        return;
+    }
+    var total = moves.reduce(function(s, m) { return s + m.white + m.draws + m.black; }, 0);
+    moves.forEach(function(m) {
+        var row = document.createElement('div');
+        row.className = 'opening-row';
+        var games = m.white + m.draws + m.black;
+        var pct = Math.round((games / total) * 100);
+        var wPct = games > 0 ? Math.round((m.white / games) * 100) : 0;
+        var dPct = games > 0 ? Math.round((m.draws / games) * 100) : 0;
+        var bPct = games > 0 ? Math.round((m.black / games) * 100) : 0;
+        row.innerHTML = '<div style="flex:1"><div class="opening-san">' + m.san + '</div><div class="opening-stats">' + games.toLocaleString() + ' لعبة | أبيض ' + wPct + '% | تعادل ' + dPct + '% | أسود ' + bPct + '%</div><div class="opening-bar"><div class="opening-bar-fill" style="width:' + pct + '%"></div></div></div><div style="text-align:right;min-width:60px"><div style="font-size:16px;font-weight:900">' + pct + '%</div><div style="font-size:10px;color:var(--dim)">شيوعاً</div></div>';
+        row.onclick = function() { playOpeningMove(m.san); };
+        list.appendChild(row);
+    });
+    document.getElementById('btnBackOpen').style.display = openHistory.length ? 'block' : 'none';
 }
 
-function updateBreadcrumb(){
-  var bc=document.getElementById('openBreadcrumb');
-  if(openHistory.length===0){bc.innerHTML='<span onclick="resetOpening()">الرئيسية</span>';return}
-  var html='<span onclick="resetOpening()">الرئيسية</span>';
-  openHistory.forEach(function(h,i){html+=' › <span onclick="jumpOpening('+i+')">'+h.san+'</span>'});
-  bc.innerHTML=html;
+function playOpeningMove(san) {
+    var c = new Chess(openFen);
+    c.move(san);
+    openFen = c.fen();
+    openHistory.push({ fen: openFen, san: san });
+    updateBreadcrumb();
+    loadOpenings();
 }
 
-function jumpOpening(idx){
-  while(openHistory.length>idx+1)openHistory.pop();
-  openFen=openHistory.length?openHistory[openHistory.length-1].fen:"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  updateBreadcrumb();loadOpenings();
+function openingBack() {
+    if (openHistory.length === 0) return;
+    openHistory.pop();
+    if (openHistory.length === 0) {
+        openFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    } else {
+        openFen = openHistory[openHistory.length - 1].fen;
+    }
+    updateBreadcrumb();
+    loadOpenings();
 }
 
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+function resetOpening() {
+    openFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    openHistory = [];
+    updateBreadcrumb();
+    loadOpenings();
+}
+
+function updateBreadcrumb() {
+    var bc = document.getElementById('openBreadcrumb');
+    if (openHistory.length === 0) {
+        bc.innerHTML = '<span onclick="resetOpening()">الرئيسية</span>';
+        return;
+    }
+    var html = '<span onclick="resetOpening()">الرئيسية</span>';
+    openHistory.forEach(function(h, i) {
+        html += ' › <span onclick="jumpOpening(' + i + ')">' + h.san + '</span>';
+    });
+    bc.innerHTML = html;
+}
+
+function jumpOpening(idx) {
+    while (openHistory.length > idx + 1) openHistory.pop();
+    openFen = openHistory.length ? openHistory[openHistory.length - 1].fen : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    updateBreadcrumb();
+    loadOpenings();
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
 </script>
 </body>
 </html>
